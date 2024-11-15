@@ -20,23 +20,23 @@ This project requires the following libraries:
 
 
 ### External Libraries
-1. **TensorFlow and Keras**:
+1. TensorFlow and Keras:
    - Used to manage machine learning models.
-   - **Installation**:
+   - Installation:
     
      pip install tensorflow
 
-2. **NumPy**:
+2. NumPy:
    - Required for numerical operations, especially with TensorFlow and Keras models.
    - **Installation**:
 
      pip install numpy
 
 
-3. **Matplotlib and Pillow (PIL)**:
+3. Matplotlib and Pillow (PIL):
    - `matplotlib`: For plotting and visualizing data.
    - `Pillow (PIL)`: For image processing.
-   - **Installation**:
+   - Installation:
     
      pip install matplotlib pillow
 
