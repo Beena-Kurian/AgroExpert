@@ -3,9 +3,12 @@ AgroExpert is a project designed to help farmers identify plant diseases through
 
 # STEPS TO FOLLOW:
 # Download the dataset for training
-Link - https://www.kaggle.com/datasets/mohitsingh1804/plantvillage/data
-About this directory
-Plant Village dataset is a public dataset of 54,305 images of diseased and healthy plant leaves collected under controlled conditions ( PlantVillage Dataset). The images cover 14 species of crops, including: apple, blueberry, cherry, grape, orange, peach, pepper, potato, raspberry, soy, squash, strawberry and tomato. It contains images of 17 basic diseases, 4 bacterial diseases, 2 diseases caused by mold (oomycete), 2 viral diseases and 1 disease caused by a mite. 12 crop species also have healthy leaf images that are not visibly affected by disease
+1. Dataset
+To train the model, download the dataset from Kaggle:
+Dataset Link: [Plant Village Dataset on Kaggle](https://www.kaggle.com/datasets/mohitsingh1804/plantvillage/data)
+This dataset includes: 
+* 54,305 images of diseased and healthy plant leaves across 14 crop species.
+* Coverage of 17 basic diseases, including bacterial, viral, and mold-based diseases.
 
 
 ## Requirements
