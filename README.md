@@ -55,7 +55,9 @@ This project requires the following libraries:
 The AgroExpert system includes an initialization process to set up required database structures and model information. The setup process is handled by initialize_system().
 
 Prerequite: clone the repository using the following command.
-git clone https://github.com/Beena-Kurian/AgroExpert.git
+   `git clone https://github.com/Beena-Kurian/AgroExpert.git`
+   `cd AgroExpert`
+
 
 ### Step 1: Run `config.py` for initialisation
 Navigate to the AgroExpert Folder, then run
