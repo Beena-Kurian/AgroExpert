@@ -44,21 +44,12 @@ This project requires the following libraries:
      `pip install matplotlib pillow`
 
    
-Project Structure
-config.py:
-Contains configurations for database paths, model paths, and other constants.
-main.py:
-The primary file for managing Farmer and Expert access and functionality.
-Handles role-based menus and user authentication.
-admin_functions.py:
-Manages administrative tasks, such as:
-User management.
-Model activation and training.
-Viewing system statistics.
-auth.py:
-Handles user authentication, login, and registration with hashed passwords.
-db.py:
-Sets up database connections and includes functions for initializing models and user data.
+### Project Structure
+- config.py: Contains configurations for database paths, model paths, and other constants.
+- main.py: The primary file for managing Farmer and Expert access and functionality. Handles role-based menus and user authentication.
+- admin_functions.py: Manages administrative tasks, such as: User management, Model activation and training, Viewing system statistics.
+- auth.py:Handles user authentication, login, and registration with hashed passwords.
+- db.py: Sets up database connections and includes functions for initializing models and user data.
 
 ### AgroExpert System Setup
 The AgroExpert system includes an initialization process to set up required database structures and model information. The setup process is handled by initialize_system().
