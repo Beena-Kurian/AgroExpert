@@ -41,8 +41,8 @@ This project requires the following libraries:
      pip install matplotlib pillow
 
    
-# Project Structure
-## config.py: Contains configuration settings and global constants for the project, such as database paths, model paths, and any API keys if required. This file centralizes configuration for easy modification.
+## Project Structure
+### config.py: Contains configuration settings and global constants for the project, such as database paths, model paths, and any API keys if required. This file centralizes configuration for easy modification.
 
 ## main.py: The main application file that contains logic for different user roles:
 Farmer and Expert User Access: Provides specific functionalities for users in the "farmer" or "expert" roles, such as accessing model predictions and viewing consultation records.
@@ -60,16 +60,68 @@ Role-based access control (Farmer, and Expert).
 ## db.py: Provides database connection functions. Includes:
 create_connection: A function to establish connections to the SQLite database.
 
-
-# AgroExpert System Setup
+## AgroExpert System Setup
 The AgroExpert system includes an initialization process to set up required database structures and model information. The setup process is handled by initialize_system().
 
-System Initialization
-The initialization process ensures that all necessary data structures, classes, and model versions are set up for the system to run smoothly.
+Prerequite: clone the repository using the following command.
+git clone https://github.com/Beena-Kurian/AgroExpert.git
 
-## Configuration File: config.py
-The config.py file should contain configurations and paths required for the system. Ensure the following details are in place:
+### Step 1: Run `config.py` for initialisation
+Navigate to the AgroExpert Folder, then run
+`python config.py`
+The config.py file will initialise DB, model classes,model version, and it will verify the database by importing functions from db.py
+from db import init_database, init_model_classes, init_first_model, verify_database
 
-Database Path: Location for storing and accessing the SQLite database.
-Model Paths: Path to store model files and access initial model versions.
-This file centralizes project configurations, making it easier to manage paths and other constants.
+### Step 2: Run `main.py` for Expert and Farmer
+`python main.py`
+This includes farmer and expert registration and Logins.
+1. Login
+2. Register
+3. Exit
+Once the user login as Farmer/Expert, the dashbboard for them can be accessed to do the intended operations.
+Once farmer is registered, he can login to do different functionalities.
+
+Farmer can perform operations like:
+1. Upload Image for Disease Identification
+2. Request Expert Consultation
+3. View My Consultations
+4. View Sample Requests
+5. View My Rewards
+6. View News
+7. Logout
+Once Expert is registered, he needs to wait until he got verified by admin. Once the admin Accepted his registration, he can login.
+
+Expert can perform operations like(once he got approved by admin): 
+1. View Pending Consultations
+      1. Provide diagnosis and treatment
+      2. Request more images (Unknown Disease)
+3. View My Rewards
+4. View News
+5. Logout
+   
+### Step 3: Run `admin_functions.py`
+`python admin_functions.py`
+Admin dashboard can be viewed by running the above code. 
+
+Admin can perform operations like: 
+1. User Management
+      1. View All Users
+      2. Approve/Reject Expert Registrations
+      3. Back to Admin Menu
+3. Manage News
+      1. Add News
+      2. View All News
+      3. Delete News
+      4. Back
+5. View System Statistics
+6. Model Management
+      1. Train New Model
+           1. Train with existing classes
+           2. Train with existing classes + new disease classes
+      3. View Model Versions
+      4. View Current Classes
+      5. Activate Model
+      6. Back
+7. Logout
+
+
