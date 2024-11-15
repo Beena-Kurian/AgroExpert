@@ -1,0 +1,7 @@
+dataset(35 classes):
+
+D:\Conestoga\prog_for_bigdata\PlantDiseaseDetection\plantvillage dataset\color
+
+dataset(3 classes from farmer):
+D:\Conestoga\prog_for_bigdata\AgroExpert\Farmer_uploads
+
