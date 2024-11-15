@@ -56,17 +56,22 @@ The AgroExpert system includes an initialization process to set up required data
 
 Prerequite: clone the repository using the following command.
    `git clone https://github.com/Beena-Kurian/AgroExpert.git`
+   
    `cd AgroExpert`
 
 
 ### Step 1: Run `config.py` for initialisation
 Navigate to the AgroExpert Folder, then run
+
 `python config.py`
+
 The config.py file will initialise DB, model classes,model version, and it will verify the database by importing functions from db.py
 from db import init_database, init_model_classes, init_first_model, verify_database
 
 ### Step 2: Run `main.py` for Expert and Farmer
+
 `python main.py`
+
 This includes farmer and expert registration and Logins.
 1. Login
 2. Register
@@ -93,7 +98,9 @@ Expert can perform operations like(once he got approved by admin):
 5. Logout
    
 ### Step 3: Run `admin_functions.py`
+
 `python admin_functions.py`
+
 Admin dashboard can be viewed by running the above code. 
 
 Admin can perform operations like: 
