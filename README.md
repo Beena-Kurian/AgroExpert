@@ -1,5 +1,5 @@
 # AgroExpert
-This is a project for helping farmers to know plant diseases from leaf images and for agricultural expert guidance. 
+AgroExpert is a project designed to help farmers identify plant diseases through leaf images and receive expert guidance on agricultural concerns.
 
 # STEPS TO FOLLOW:
 # Download the dataset for training
