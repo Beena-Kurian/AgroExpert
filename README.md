@@ -55,6 +55,7 @@ This project requires the following libraries:
 The AgroExpert system includes an initialization process to set up required database structures and model information. The setup process is handled by initialize_system().
 
 Prerequite: clone the repository using the following command.
+
    `git clone https://github.com/Beena-Kurian/AgroExpert.git`
    
    `cd AgroExpert`
@@ -87,9 +88,10 @@ Farmer can perform operations like:
 5. View My Rewards
 6. View News
 7. Logout
-Once Expert is registered, he needs to wait until he got verified by admin. Once the admin Accepted his registration, he can login.
 
-Expert can perform operations like(once he got approved by admin): 
+Note: Experts must be approved by an admin before accessing the system.
+Once Expert is registered, and approved, he can perform operations like:
+
 1. View Pending Consultations
       1. Provide diagnosis and treatment
       2. Request more images (Unknown Disease)
@@ -97,6 +99,8 @@ Expert can perform operations like(once he got approved by admin):
 4. View News
 5. Logout
    
+
+
 ### Step 3: Run `admin_functions.py`
 
 `python admin_functions.py`
