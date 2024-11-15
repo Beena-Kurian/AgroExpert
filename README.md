@@ -9,7 +9,8 @@ Dataset Link: [Plant Village Dataset on Kaggle](https://www.kaggle.com/datasets/
 This dataset includes: 
 * 54,305 images of diseased and healthy plant leaves across 14 crop species.
 * Coverage of 17 basic diseases, including bacterial, viral, and mold-based diseases.
-
+  
+(Note : Check folder `models` where you can see already trained models. System is initialised with `models-->model_version1.h5` , trained using 35 classes from the plant village dataset. `models-->model_final.h5` is trained using whole dataset)
 
 ## Requirements
 This project requires the following libraries:
