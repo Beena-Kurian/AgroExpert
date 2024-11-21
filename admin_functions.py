@@ -313,6 +313,30 @@ class AdminFunctions:
             finally:
                 conn.close()
 
+    def get_valid_path(self, prompt):
+        while True:
+            path = input(prompt).strip()
+
+            if not path:
+                print("Invalid path: Path cannot be empty.")
+                continue
+
+            if not os.path.exists(path):
+                print(f"Invalid path: Path '{path}' does not exist.")
+                continue
+
+            if not os.path.isdir(path):
+                print(f"Invalid path: '{path}' is not a directory.")
+                continue
+
+            return path
+
+    def get_valid_basepath(self):
+        return self.get_valid_path("Enter path to base dataset: ")
+    def get_valid_dataset_path(self):
+        return self.get_valid_path("\nEnter the path of the trained dataset: ")    
+    def get_new_disease_dataset_path(self):
+        return self.get_valid_path("Enter path to new disease folders: ")
     def test_model_predictions(self, model, test_ds, class_names, num_samples=5):
         """
         Test model predictions on sample images and save results
@@ -352,26 +376,50 @@ class AdminFunctions:
         plt.tight_layout()
         plt.savefig('plots/prediction_samples.png')
         plt.close()
-        
         return 'plots/prediction_samples.png'
-        
+    
+    def get_validated_input(self, prompt, default_value, min_value=None, max_value=None, parameter=None):
+        while True:
+            user_input = input(prompt)
+            if not user_input:
+                return default_value
+
+            try:
+                if parameter == "epoch":
+                    value = int(user_input)  # Ensure integer input for epochs
+                    if value < min_value:
+                        print(f"Value must be greater than or equal to {min_value}")
+                    elif value > max_value:
+                        print(f"Value must be less than or equal to {max_value}")
+                    else:
+                        return value
+                if parameter == "lr":
+                    value = float(user_input)  
+                    if value < min_value:
+                        print(f"Value must be greater than or equal to {min_value}")
+                    elif value > max_value:
+                        print(f"Value must be less than or equal to {max_value}")
+                    else:
+                        return value
+            except ValueError:
+                print("Invalid input..")
+
     def train_new_model(self):
         from model_training import ModelTrainer
-        
+
         print("\n=== Train New Model ===")
         print("1. Train with existing classes")
         print("2. Train with existing classes + new disease classes")
         choice = input("Enter choice (1-2): ")
 
         # Get training parameters
-        epochs = int(input("Enter number of epochs (default 15): ") or "15")
-        learning_rate = float(input("Enter learning rate (default 0.001): ") or "0.001")
-        base_path = input("Enter path to base dataset: ")
-        
+        epochs = self.get_validated_input("Enter number of epochs (default 15): ", 15, 1, 50, "epoch")
+        learning_rate = self.get_validated_input("Enter learning rate (default 0.001): ", 0.001, 0.0001, 0.1,"lr")
+        base_path = self.get_valid_basepath()
         trainer = ModelTrainer()
         
         if choice == "2":
-            new_disease_path = input("Enter path to new disease folders: ")
+            new_disease_path = self.get_new_disease_dataset_path()
             trainer.prepare_dataset(base_path, new_disease_path)
         else:
             trainer.prepare_dataset(base_path)
@@ -449,6 +497,9 @@ class AdminFunctions:
 
         except Exception as e:
             print(f"Error accessing the database: {e}")
+    import os
+
+
 
     def activate_model(self):
         print("\n=== Activate Model ===")
@@ -464,10 +515,11 @@ class AdminFunctions:
                     ORDER BY training_date DESC
                 ''')
                 versions = cursor.fetchall()
-                
+                ids = []
                 print("\nAvailable Model Versions:")
                 for version in versions:
                     print(f"\nID: {version[0]}")
+                    ids.append(version[0])
                     print(f"Version: {version[1]}")
                     print(f"Accuracy: {version[2]*100:.2f}%")
                     print(f"Classes: {version[3]}")
@@ -476,8 +528,19 @@ class AdminFunctions:
                     print(f"Active: {'Yes' if version[6] else 'No'}")
                     print("-" * 30)
                 
-                model_id = input("\nEnter the ID of the model to activate (or 'back' to return): ")
-                dataset_path = input("\nEnter the path of the trained dataset: ")
+                # get model id to activate
+                model_id = input("\nEnter the ID of the model to activate (or 'back' to return): ").strip()
+                if model_id.lower() == 'back':
+                    return
+                #  Check if the model ID exists before getting dataset path
+                cursor.execute("SELECT * FROM model_versions WHERE id = ?", (model_id,))
+                model_info = cursor.fetchone()
+                if not model_info:
+                    print(f"Model with ID {model_id} not found.")
+                    return
+                # get the dataset path to get class information
+                dataset_path = self.get_valid_dataset_path()
+
                 if model_id.lower() != 'back':
                     try:
                         # Get model details including path
@@ -528,9 +591,7 @@ class AdminFunctions:
                                 print(f"\nNew classes added: {len(new_classes)}")
                                 print("Use 'View Current Classes' to see the updated list.")
                             else:
-                                print(f"\nError: Dataset directory not found at {dataset_path}")
-                        else:
-                            print("\nError: Model ID not found!")
+                                print(f"\nError: Dataset directory not found  {dataset_path}")
                     except Exception as e:
                         print(f"\nError activating model: {e}")
                         conn.rollback()
