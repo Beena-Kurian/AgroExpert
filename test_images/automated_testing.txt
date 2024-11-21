@@ -1,0 +1,3 @@
+command to run:
+
+pytest tests/ -v
