@@ -209,10 +209,10 @@ def init_first_model():
                      description, is_active)
                     VALUES (?, ?, ?, ?, ?, ?)
                 ''', (
-                    "D:/Conestoga/prog_for_bigdata/AgroExpert/models/model_version1.h5",
+                    "D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\models\model_version1.h5",
                     "1.0",
-                    0.95,  # Your model's accuracy
-                    35,    # Number of classes
+                    0.95,  # Initial model accuracy
+                    35,    # Initial model classes
                     "Initial model with 35 plant diseases",
                     1
                 ))
@@ -301,7 +301,7 @@ def verify_database():
             print(f"\nFound {class_count} classes in model_classes table")
             
             if class_count > 0:
-                cursor.execute('SELECT class_name FROM model_classes LIMIT 5')
+                cursor.execute('SELECT class_name FROM model_classes')
                 sample_classes = cursor.fetchall()
                 print("Sample classes:", [c[0] for c in sample_classes])
             
