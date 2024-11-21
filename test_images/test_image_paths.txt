@@ -1,2 +1,2 @@
-D:\Conestoga\prog_for_bigdata\AgroExpert\test_images\test1_GR.JPG
-D:\Conestoga\prog_for_bigdata\AgroExpert\test_images\test2_SLS.JPG
+D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\TestImages\test1_GR.JPG
+D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\TestImages\test2_SLS.JPG
