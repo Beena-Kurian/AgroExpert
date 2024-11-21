@@ -43,6 +43,9 @@ This project requires the following libraries:
     
      `pip install matplotlib pillow`
 
+4. Pytest 
+   - For running test cases automatically, install pytest
+     `pip install pytest`
    
 ### Project Structure
 - config.py: Contains configurations for database paths, model paths, and other constants.
@@ -128,4 +131,12 @@ Admin can perform operations like:
       6. Back
 7. Logout
 
+
+### Step 5: Run Automatic testing using pytest 
+      Type the following command in the terminal/ command line,
+       
+            pytest tests/ -v
+
+     - This will run the automatic test codes written inside the `test` directory.
+     - config and db test file is test_db.py
 
