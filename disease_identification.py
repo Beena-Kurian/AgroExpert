@@ -112,7 +112,7 @@ class DiseaseIdentification:
             return {"error": "Image file not found"}
 
         # Preprocess the image
-        processed_image = self.img_to_pred(image_path)  # Changed this line
+        processed_image = self.img_to_pred(image_path) 
         if processed_image is None:
             return {"error": "Error preprocessing image"}
 
@@ -153,8 +153,7 @@ class DiseaseIdentification:
         else:
             print("Status: Disease detected!")
             print(f"Disease: {condition}")
-            # Here you could add more specific information for each disease
-            print("Recommendation: Consider consulting with an agricultural expert for treatment options.")
+            # print("Recommendation: Consider consulting with an agricultural expert for treatment options.")
 
     def display_image(self, image_path):
         try:
@@ -167,6 +166,7 @@ class DiseaseIdentification:
             plt.show()
         except Exception as e:
             print(f"Error displaying image: {e}")
+            
     def check_model_file(self, model_path):
         """Check if model file exists and is accessible"""
         if not os.path.exists(model_path):
@@ -222,11 +222,8 @@ class DiseaseIdentification:
             
             if prediction['confidence'] < self.confidence_threshold:
                 print("\nWarning: Low confidence prediction.")
-                print("Would you like to request expert consultation? (y/n)")
-                if input().lower() == 'y':
-                    from expert_consultation_old import ExpertConsultation
-                    consultation = ExpertConsultation()
-                    consultation.create_consultation(user_id, prediction['name'], image_path)
+                print("The AI system is uncertain about this plant disease diagnosis. \n Recommendation: Please consult an Expert.")
+                return
             else:
                 self.display_disease_info(prediction['name'])
             
