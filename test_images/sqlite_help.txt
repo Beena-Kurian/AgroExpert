@@ -1,0 +1,7 @@
+To run sqlite Queries,
+
+
+(base) PS D:\Conestoga\prog_for_bigdata\PDD\AgroExpert> sqlite3 data/agroexpert.db
+SQLite version 3.45.3 2024-04-15 13:34:05 (UTF-16 console I/O)
+Enter ".help" for usage hints.
+sqlite>  (Type Queries here)
