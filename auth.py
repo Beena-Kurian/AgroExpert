@@ -172,61 +172,7 @@ class Auth:
             finally:
                 conn.close()
         return False
-    # def register_user(self, username, password, role, email, phone):
-    #     conn = create_connection()
-    #     if conn is not None:
-    #         try:
-    #             cursor = conn.cursor()
-    #             hashed_password = self.hash_password(password)
-                
-    #             cursor.execute('''
-    #                 INSERT INTO users (username, password, role, email, phone)
-    #                 VALUES (?, ?, ?, ?, ?)
-    #             ''', (username, hashed_password, role, email, phone))
-                
-    #             user_id = cursor.lastrowid
-                
-    #             # Initialize rewards for new user
-    #             cursor.execute('INSERT INTO rewards (user_id) VALUES (?)', (user_id,))
-                
-    #             conn.commit()
-    #             print("Registration successful!")
-    #             return True
-    #         except sqlite3.IntegrityError:
-    #             print("Username or email already exists!")
-    #             return False
-    #         except Exception as e:
-    #             print(f"Error during registration: {e}")
-    #             return False
-    #         finally:
-    #             conn.close()
-    #     return False
 
-    # def login(self, username, password):
-    #     conn = create_connection()
-    #     if conn is not None:
-    #         try:
-    #             cursor = conn.cursor()
-    #             hashed_password = self.hash_password(password)
-                
-    #             cursor.execute('''
-    #                 SELECT id, role, status FROM users 
-    #                 WHERE username = ? AND password = ?
-    #             ''', (username, hashed_password))
-                
-    #             user = cursor.fetchone()
-    #             if user:
-    #                 if user[2] == 'active':
-    #                     return {'id': user[0], 'role': user[1]}
-    #                 else:
-    #                     print("Account is not active")
-    #                     return None
-    #             else:
-    #                 print("Invalid username or password")
-    #                 return None
-    #         finally:
-    #             conn.close()
-    #     return None
     def login(self, username, password):
         conn = create_connection()
         if conn is not None:
