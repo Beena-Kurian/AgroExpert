@@ -1,4 +1,3 @@
 Farmer_uploads/*
 !Farmer_uploads/.gitkeep
 __pycache__/
-!tests/
