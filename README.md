@@ -134,10 +134,11 @@ Admin can perform operations like:
 
 
 ### Step 5: Run Automatic testing using pytest 
-      Type the following command in the terminal/ command line,
-       
-            pytest tests/ -v
+    
+  Type the following command in the terminal/ command line,
+  
+  `pytest tests/ -v`
 
-     - This will run the automatic test codes written inside the `test` directory.
-     - config and db test file is test_db.py
+- This will run the automatic test codes written inside the `test` directory.
+- config and db test file is test_db.py
 
