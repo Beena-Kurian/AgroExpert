@@ -1,7 +1,85 @@
 from db import create_connection
 from datetime import datetime
+from PIL import Image
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+from rewards import ExpertRewards
+from rewards import FarmerRewards
+from disease_identification import *
 
 class ExpertConsultation:
+    def __init__(self, disease_identifier, expert_rewards):
+        """
+        Initializes the ExpertConsultation class.
+
+        Args:
+            disease_identifier (DiseaseIdentification): Instance of the DiseaseIdentification class.
+            reward_system (ExpertRewards): Instance of the ExpertRewards class for handling rewards.
+        """
+        self.disease_identifier = disease_identifier
+        self.expert_rewards = expert_rewards
+
+    # def notify_farmer_replies(self, farmer_id):
+    #     conn = create_connection()  # Assuming you have a create_connection function
+    #     if conn:
+    #         try:
+    #             cursor = conn.cursor()
+
+    #             # Get the last login time for the farmer
+    #             cursor.execute('''
+    #                 SELECT last_login 
+    #                 FROM users 
+    #                 WHERE id = ?
+    #             ''', (farmer_id,))
+    #             last_login = cursor.fetchone()
+
+    #             if last_login:
+    #                 last_login_time = last_login[0]
+                    
+    #                 # Fetch consultations/replies after the last login timestamp
+    #                 cursor.execute('''
+    #                     SELECT * 
+    #                     FROM consultations 
+    #                     WHERE farmer_id = ? 
+    #                     AND status = 'active' 
+    #                     AND created_at > ? 
+    #                     ORDER BY created_at DESC
+    #                 ''', (farmer_id, last_login_time))
+                    
+    #                 replies = cursor.fetchall()
+
+    #                 if replies:
+    #                     print(f"New replies since your last login:")
+    #                     for reply in replies:
+    #                         print(f"- {reply}")
+    #                 else:
+    #                     print("No new replies since your last login.")
+    #             else:
+    #                 print("Unable to fetch last login time.")
+    #         finally:
+    #             conn.close()
+
+
+    def notify_expert_new_messages(self, expert_id):
+        conn = create_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                # Fetch new messages for the expert
+                cursor.execute('''
+                    SELECT COUNT(*) 
+                    FROM consultations 
+                    WHERE status = 'pending'
+                ''')
+                count = cursor.fetchone()[0]
+                # Debug: check the count value
+                # print(f"Fetched count: {count}")
+                if count > 0:
+                    print(f"\nYou have {count} new consultation message(s) from farmers.")
+                else:
+                    print("\nNo new messages from farmers.")
+            finally:
+                conn.close()
     def create_new_consultation(self, farmer_id):
         print("\n=== Create New Consultation ===")
         
@@ -21,15 +99,21 @@ class ExpertConsultation:
                 cursor = conn.cursor()
                 cursor.execute('''
                     INSERT INTO consultations 
-                    (farmer_id, description, status, image_path) 
-                    VALUES (?, ?, ?, ?)
-                ''', (
-                    farmer_id, 
-                    f"Plant: {plant_name}\nSymptoms: {symptoms}\nRegion: {region}\n" +
-                    f"Date Noticed: {date_noticed}\nTreatments Tried: {treatments}",
-                    "pending",
-                    image_path if image_path else None
-                ))
+                    (farmer_id, image_path, plant_name, symptoms, region, date_noticed, treatments, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (farmer_id,image_path if image_path else None, plant_name, symptoms,region,date_noticed,treatments,'pending'))
+
+                # cursor.execute('''
+                #     INSERT INTO consultations 
+                #     (farmer_id, description, status, image_path) 
+                #     VALUES (?, ?, ?, ?)
+                # ''', (
+                #     farmer_id, 
+                #     f"Plant: {plant_name}\nSymptoms: {symptoms}\nRegion: {region}\n" +
+                #     f"Date Noticed: {date_noticed}\nTreatments Tried: {treatments}",
+                #     "pending",
+                #     image_path if image_path else None
+                # ))
                 conn.commit()
                 print("\nConsultation request created successfully!")
                 
@@ -46,7 +130,7 @@ class ExpertConsultation:
         if conn:
             try:
                 cursor = conn.cursor()
-                # Add 10 points for consultation request
+                # Add 10 points for consultation request(for farmer)
                 cursor.execute('''
                     UPDATE rewards 
                     SET points = points + 10 
@@ -186,7 +270,7 @@ class ExpertConsultation:
                 print("\nResponse submitted successfully!")
                 
                 # Add points for expert
-                self.add_expert_response_points(expert_id)
+                self.expert_rewards.award_consultation_completion(expert_id)
                 
             except Exception as e:
                 print(f"Error submitting response: {e}")
@@ -227,7 +311,7 @@ class ExpertConsultation:
                     if cons[3]:  # if image path exists
                         print("\nWould you like to view the image? (y/n)")
                         if input().lower() == 'y':
-                            self.display_image(cons[3])
+                            self.disease_identifier.display_image(cons[3])
                     print("-" * 50)
                 
                 # Option to respond to a consultation
@@ -247,7 +331,6 @@ class ExpertConsultation:
                         print("Error: Please enter a valid number.")
             finally:
                 conn.close()
-    
     def respond_to_consultation(self, expert_id, consultation_id):
         conn = create_connection()
         if conn:
@@ -334,10 +417,18 @@ class ExpertConsultation:
                     print("\nRequest for more samples submitted successfully!")
                     print("Farmer will be notified to provide more images.")
                 
+                # Calculate response time if needed
+                cursor.execute('''
+                    SELECT created_at FROM consultations WHERE id = ?
+                ''', (consultation_id,))
+                created_at = cursor.fetchone()[0]
+                response_time = self.calculate_response_time(created_at)
+
                 conn.commit()
-                
-                # Add points for expert
-                self.add_expert_response_points(expert_id)
+                print("Response saved successfully.")
+                # Award points for the completed consultation
+                if self.expert_rewards.award_consultation_completion(expert_id, response_time):
+                    print("Reward points successfully awarded to the expert.")
                 
             except Exception as e:
                 print(f"Error submitting response: {e}")
@@ -345,109 +436,126 @@ class ExpertConsultation:
             finally:
                 conn.close()
 
-def submit_disease_samples(self, farmer_id, unknown_disease_id, samples_path):
-    """
-    Submit samples for an unknown disease
-    """
-    conn = create_connection()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            
-            # Store samples information
-            cursor.execute('''
-                INSERT INTO disease_samples 
-                (unknown_disease_id, farmer_id, samples_zip_path) 
-                VALUES (?, ?, ?)
-            ''', (unknown_disease_id, farmer_id, samples_path))
-            
-            # Update unknown disease status
-            cursor.execute('''
-                UPDATE unknown_diseases 
-                SET status = 'samples_received' 
-                WHERE id = ?
-            ''', (unknown_disease_id,))
-            
-            conn.commit()
-            print("\nSamples submitted successfully!")
-            
-            # Add reward points for submitting samples
-            self.add_sample_submission_points(farmer_id)
-            
-        except Exception as e:
-            print(f"Error submitting samples: {e}")
-            conn.rollback()
-        finally:
-            conn.close()
+    @staticmethod
+    def calculate_response_time(created_at):
+        """
+        Calculate the response time in hours.
 
-def add_sample_submission_points(self, farmer_id):
-    """
-    Add points for submitting disease samples
-    """
-    conn = create_connection()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            # Add 500 points for submitting samples (50 images)
-            cursor.execute('''
-                UPDATE rewards 
-                SET points = points + 500 
-                WHERE user_id = ?
-            ''', (farmer_id,))
-            
-            # Log the transaction
-            cursor.execute('''
-                INSERT INTO reward_transactions 
-                (user_id, action, points, description)
-                VALUES (?, ?, ?, ?)
-            ''', (farmer_id, 'sample_submission', 500, 
-                 'Points for submitting unknown disease samples'))
-            
-            conn.commit()
-        except Exception as e:
-            print(f"Error adding reward points: {e}")
-            conn.rollback()
-        finally:
-            conn.close()
+        Args:
+            created_at (str): The timestamp when the consultation was created.
 
-def view_unknown_disease_requests(self, farmer_id):
-    """
-    View requests for additional samples for unknown diseases
-    """
-    conn = create_connection()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT ud.id, ud.description, ud.symptoms, 
-                       c.id as consultation_id
-                FROM unknown_diseases ud
-                JOIN consultations c ON ud.reported_by_farmer_id = c.farmer_id
-                WHERE ud.reported_by_farmer_id = ? 
-                AND ud.status = 'samples_requested'
-            ''', (farmer_id,))
-            requests = cursor.fetchall()
-            
-            if not requests:
-                print("\nNo pending requests for disease samples.")
-                return
-            
-            print("\n=== Pending Sample Requests ===")
-            for req in requests:
-                print(f"\nRequest ID: {req[0]}")
-                print(f"Description: {req[1]}")
-                print(f"Symptoms to Document: {req[2]}")
-                print(f"Related Consultation: {req[3]}")
-                print("-" * 50)
+        Returns:
+            int: Response time in hours.
+        """
+        from datetime import datetime
+        created_time = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+        current_time = datetime.now()
+        response_time = (current_time - created_time).total_seconds() / 3600
+        return int(response_time)
+    
+    def submit_disease_samples(self, farmer_id, unknown_disease_id, samples_path):
+        """
+        Submit samples for an unknown disease
+        """
+        conn = create_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
                 
-            # Option to submit samples
-            req_id = input("\nEnter request ID to submit samples (or press Enter to skip): ")
-            if req_id:
-                samples_path = input("Enter path to samples zip file: ").strip('"').strip("'")
-                if os.path.exists(samples_path):
-                    self.submit_disease_samples(farmer_id, int(req_id), samples_path)
-                else:
-                    print("Error: File not found!")
+                # Store samples information
+                cursor.execute('''
+                    INSERT INTO disease_samples 
+                    (unknown_disease_id, farmer_id, samples_zip_path) 
+                    VALUES (?, ?, ?)
+                ''', (unknown_disease_id, farmer_id, samples_path))
+                
+                # Update unknown disease status
+                cursor.execute('''
+                    UPDATE unknown_diseases 
+                    SET status = 'samples_received' 
+                    WHERE id = ?
+                ''', (unknown_disease_id,))
+                
+                conn.commit()
+                print("\nSamples submitted successfully!")
+                
+                # Add reward points for submitting samples
+                self.add_sample_submission_points(farmer_id)
+                
+            except Exception as e:
+                print(f"Error submitting samples: {e}")
+                conn.rollback()
+            finally:
+                conn.close()
+
+    def add_sample_submission_points(self, farmer_id):
+        """
+        Add points for submitting disease samples
+        """
+        conn = create_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                # Add 500 points for submitting samples (50 images)
+                cursor.execute('''
+                    UPDATE rewards 
+                    SET points = points + 500 
+                    WHERE user_id = ?
+                ''', (farmer_id,))
+                
+                # Log the transaction
+                cursor.execute('''
+                    INSERT INTO reward_transactions 
+                    (user_id, action, points, description)
+                    VALUES (?, ?, ?, ?)
+                ''', (farmer_id, 'sample_submission', 500, 
+                    'Points for submitting unknown disease samples'))
+                
+                conn.commit()
+            except Exception as e:
+                print(f"Error adding reward points: {e}")
+                conn.rollback()
+            finally:
+                conn.close()
+
+    def view_unknown_disease_requests(self, farmer_id):
+        """
+        View requests for additional samples for unknown diseases
+        """
+        conn = create_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT ud.id, ud.description, ud.symptoms, 
+                        c.id as consultation_id
+                    FROM unknown_diseases ud
+                    JOIN consultations c ON ud.reported_by_farmer_id = c.farmer_id
+                    WHERE ud.reported_by_farmer_id = ? 
+                    AND ud.status = 'samples_requested'
+                ''', (farmer_id,))
+                requests = cursor.fetchall()
+                
+                if not requests:
+                    print("\nNo pending requests for disease samples.")
+                    return
+                
+                print("\n=== Pending Sample Requests ===")
+                for req in requests:
+                    print(f"\nRequest ID: {req[0]}")
+                    print(f"Description: {req[1]}")
+                    print(f"Symptoms to Document: {req[2]}")
+                    print(f"Related Consultation: {req[3]}")
+                    print("-" * 50)
                     
-        finally:
-            conn.close()
+                # Option to submit samples
+                req_id = input("\nEnter request ID to submit samples (or press Enter to skip): ")
+                if req_id:
+                    samples_path = input("Enter path to samples zip file: ").strip('"').strip("'")
+                    if os.path.exists(samples_path):
+                        self.submit_disease_samples(farmer_id, int(req_id), samples_path)
+                    else:
+                        print("Error: File not found!")
+                        
+            finally:
+                conn.close()
