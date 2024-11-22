@@ -28,7 +28,7 @@ class RewardSystem:
         if conn:
             try:
                 cursor = conn.cursor()
-                cursor.execute('SELECT points FROM rewards WHERE user_id = ?', (user_id,))
+                cursor.execute('SELECT SUM(points) FROM rewards WHERE user_id = ?', (user_id,))
                 result = cursor.fetchone()
                 return result[0] if result else 0
             finally:
