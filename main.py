@@ -1,18 +1,22 @@
 from auth import Auth
 from disease_identification import DiseaseIdentification
 from expert_consultation import ExpertConsultation
-from rewards import display_rewards_menu
+from rewards import *
 from news_updates import NewsUpdates
 import os
 
 class AgroExpert:
     def __init__(self):
         self.auth = Auth()
-        self.disease_identifier = DiseaseIdentification()
-        self.consultation = ExpertConsultation()
-        self.news = NewsUpdates()
         self.current_user = None
+        self.disease_identifier = DiseaseIdentification()
+        self.news = NewsUpdates()
+        # Initialize the appropriate reward system based on user role
+        self.farmer_rewards = FarmerRewards()  # For Farmer-specific rewards
+        self.expert_rewards = ExpertRewards()  # For Expert-specific rewards
+        self.consultation = ExpertConsultation(self.disease_identifier, self.expert_rewards)
 
+        
     def display_menu(self):
         while True:
             if not self.current_user:
@@ -37,20 +41,26 @@ class AgroExpert:
 
     def display_user_menu(self):
         role = self.current_user['role']
-        
         if role == 'farmer':
+            # # Notify farmer about replies
+            # print("-----Notifications-----:\n")
+            # self.consultation.notify_farmer_replies(self.current_user['id'])
             self.display_farmer_menu()
         elif role == 'expert':
+            # Notify expert about new messages
+            print("-----Notifications----:\n")
+            self.consultation.notify_expert_new_messages(self.current_user['id'])
             self.display_expert_menu()
         else:
             print("Invalid role! Please try again.")
             self.current_user = None
+
     def display_farmer_menu(self):
         while True:
             print("\n=== Farmer Menu ===")
             print("1. Upload Image for Disease Identification")
             print("2. Request Expert Consultation")
-            print("3. View My Consultations")
+            print("3. View My Consultation Responses")
             print("4. View Sample Requests") 
             print("5. View My Rewards")
             print("6. View News")
