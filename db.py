@@ -24,7 +24,8 @@ def init_database():
                     role TEXT NOT NULL,
                     email TEXT UNIQUE,
                     phone TEXT,
-                    status TEXT DEFAULT 'active'
+                    status TEXT DEFAULT 'active',
+                    last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
 
