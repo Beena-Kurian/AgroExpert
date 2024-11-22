@@ -52,9 +52,9 @@ class DiseaseIdentification:
                     try:
                         self.model = tf.keras.models.load_model(model_path)
                         print(f"Model loaded successfully with {len(self.classes)} classes!")
-                        print("\nAvailable classes:")
-                        for i, class_name in enumerate(self.classes, 1):
-                            print(f"{i}. {class_name}")
+                        # print("\nAvailable classes:")
+                        # for i, class_name in enumerate(self.classes, 1):
+                        #     print(f"{i}. {class_name}")
                     except Exception as e:
                         print(f"Error loading model: {e}")
                         self.model = None
