@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 from db import create_connection
+from gift_card import *
 
 class AdminFunctions:
 
@@ -13,8 +14,9 @@ class AdminFunctions:
             print("1. User Management")
             print("2. Manage News")
             print("3. View System Statistics")
-            print("4. Model Management")  
-            print("5. Logout")
+            print("4. Model Management")
+            print("5. Gift Card Management")  
+            print("6. Logout")
             
             choice = input("Enter your choice (1-5): ")
             
@@ -27,6 +29,8 @@ class AdminFunctions:
             elif choice == '4':
                 self.model_management_menu()  
             elif choice == '5':
+                self.gift_card_management_menu()
+            elif choice == '6':    
                 self.current_user = None
                 break
             else:
@@ -598,6 +602,46 @@ class AdminFunctions:
             finally:
                 conn.close()
 
+    def gift_card_management_menu(self):
+        """Menu for managing gift cards."""
+        while True:
+            print("\n=== Gift Card Management ===")
+            print("1. Add a Single Gift Card")
+            print("2. Add Multiple Gift Cards")
+            print("3. View All Gift Cards")
+            print("4. Deactivate a Gift Card")
+            print("5. Back to Admin Menu")
+            
+            choice = input("Enter your choice (1-5): ")
+            
+            if choice == '1':
+                try:
+                    value = int(input("Enter the value of the gift card: "))
+                    days_valid = int(input("Enter the number of days the gift card is valid: "))
+                    add_coupon(value, days_valid)
+                except ValueError:
+                    print("Invalid input! Please enter numerical values.")
+            elif choice == '2':
+                try:
+                    value = int(input("Enter the value of the gift cards: "))
+                    days_valid = int(input("Enter the number of days the gift cards are valid: "))
+                    count = int(input("Enter the number of gift cards to generate: "))
+                    add_multiple_coupons(value, days_valid, count)
+                except ValueError:
+                    print("Invalid input! Please enter numerical values.")
+            elif choice == '3':
+                view_coupons()
+            elif choice == '4':
+                try:
+                    coupon_id = int(input("Enter the ID of the gift card to deactivate: "))
+                    deactivate_coupon(coupon_id)
+                except ValueError:
+                    print("Invalid input! Please enter a valid gift card ID.")
+            elif choice == '5':
+                break
+            else:
+                print("Invalid choice! Please try again.")
+                
 if __name__ == "__main__":
     admin = AdminFunctions()
     admin.display_admin_menu()
