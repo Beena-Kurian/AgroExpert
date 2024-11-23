@@ -102,18 +102,6 @@ class ExpertConsultation:
                     (farmer_id, image_path, plant_name, symptoms, region, date_noticed, treatments, status)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (farmer_id,image_path if image_path else None, plant_name, symptoms,region,date_noticed,treatments,'pending'))
-
-                # cursor.execute('''
-                #     INSERT INTO consultations 
-                #     (farmer_id, description, status, image_path) 
-                #     VALUES (?, ?, ?, ?)
-                # ''', (
-                #     farmer_id, 
-                #     f"Plant: {plant_name}\nSymptoms: {symptoms}\nRegion: {region}\n" +
-                #     f"Date Noticed: {date_noticed}\nTreatments Tried: {treatments}",
-                #     "pending",
-                #     image_path if image_path else None
-                # ))
                 conn.commit()
                 print("\nConsultation request created successfully!")
                 
