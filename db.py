@@ -120,7 +120,27 @@ def init_database():
                     FOREIGN KEY (user_id) REFERENCES users (id)
                 )
             ''')
+             # Create coupons table
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS coupons (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    code TEXT UNIQUE,
+                    value INTEGER,
+                    expiration_date TIMESTAMP,
+                    is_active BOOLEAN DEFAULT 1
+                )
+            ''')
 
+            # Create coupon usage table
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS coupon_usage (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    coupon_id INTEGER,
+                    user_id INTEGER,
+                    redemption_date TIMESTAMP,
+                    FOREIGN KEY (coupon_id) REFERENCES coupons (id)
+                )
+            ''')
             # Create News table
             c.execute('''
                 CREATE TABLE IF NOT EXISTS news (
