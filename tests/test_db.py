@@ -11,7 +11,7 @@ from config import initialize_system
 from db import create_connection, init_model_classes
 
 @pytest.fixture
-def test_db():
+def test_db_ok():
     """
     Fixture for creating an in-memory SQLite database for testing.
     """
@@ -20,7 +20,7 @@ def test_db():
     conn.close()
 
 # POSITIVE TEST CASES
-def test_initialize_system():
+def test_initialize_system_ok():
     """
     Test the system initialization using config.py.
     """
@@ -44,7 +44,7 @@ def test_initialize_system():
     conn.close()
 
 
-def test_create_connection():
+def test_create_connection_ok():
     """
     Test the database connection creation from db.py.
     """
@@ -52,7 +52,7 @@ def test_create_connection():
     assert conn is not None, "Database connection should not be None"
 
 
-def test_init_model_classes():
+def test_init_model_classes_ok():
     conn = create_connection()
     init_model_classes()
     cursor = conn.cursor()
