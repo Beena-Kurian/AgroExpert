@@ -3,8 +3,7 @@ from datetime import datetime
 from PIL import Image
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
-from rewards import ExpertRewards
-from rewards import FarmerRewards
+from rewards import RewardSystem, ExpertRewards, FarmerRewards
 from disease_identification import *
 
 class ExpertConsultation:
@@ -19,46 +18,45 @@ class ExpertConsultation:
         self.disease_identifier = disease_identifier
         self.expert_rewards = expert_rewards
 
-    # def notify_farmer_replies(self, farmer_id):
-    #     conn = create_connection()  # Assuming you have a create_connection function
-    #     if conn:
-    #         try:
-    #             cursor = conn.cursor()
+    def notify_farmer_replies(self, farmer_id):
+        conn = create_connection()  # Assuming you have a create_connection function
+        if conn:
+            try:
+                cursor = conn.cursor()
 
-    #             # Get the last login time for the farmer
-    #             cursor.execute('''
-    #                 SELECT last_login 
-    #                 FROM users 
-    #                 WHERE id = ?
-    #             ''', (farmer_id,))
-    #             last_login = cursor.fetchone()
+                # Get the last login time for the farmer
+                cursor.execute('''
+                    SELECT last_login 
+                    FROM users 
+                    WHERE id = ?
+                ''', (farmer_id,))
+                last_login = cursor.fetchone()
 
-    #             if last_login:
-    #                 last_login_time = last_login[0]
-                    
-    #                 # Fetch consultations/replies after the last login timestamp
-    #                 cursor.execute('''
-    #                     SELECT * 
-    #                     FROM consultations 
-    #                     WHERE farmer_id = ? 
-    #                     AND status = 'active' 
-    #                     AND created_at > ? 
-    #                     ORDER BY created_at DESC
-    #                 ''', (farmer_id, last_login_time))
-                    
-    #                 replies = cursor.fetchall()
+                if last_login:
+                    last_login_time = last_login[0]
 
-    #                 if replies:
-    #                     print(f"New replies since your last login:")
-    #                     for reply in replies:
-    #                         print(f"- {reply}")
-    #                 else:
-    #                     print("No new replies since your last login.")
-    #             else:
-    #                 print("Unable to fetch last login time.")
-    #         finally:
-    #             conn.close()
+                    # Fetch count of replies after the last login timestamp
+                    cursor.execute('''
+                        SELECT COUNT(*) 
+                        FROM consultation_responses cr
+                        INNER JOIN consultations c
+                        ON cr.consultation_id = c.id
+                        WHERE c.farmer_id = ? 
+                        AND cr.created_at > ?
+                    ''', (farmer_id, last_login_time))
 
+                    reply_count = cursor.fetchone()[0]
+
+                    if reply_count > 0:
+                        print(f"You have received {reply_count} new reply/replies since your last login.")
+                    else:
+                        print("No new replies since your last login.")
+                else:
+                    print("Unable to fetch last login time for the farmer.")
+            except Exception as e:
+                print(f"Error fetching notifications: {e}")
+            finally:
+                conn.close()
 
     def notify_expert_new_messages(self, expert_id):
         conn = create_connection()
@@ -80,39 +78,91 @@ class ExpertConsultation:
                     print("\nNo new messages from farmers.")
             finally:
                 conn.close()
+
+
     def create_new_consultation(self, farmer_id):
         print("\n=== Create New Consultation ===")
         
-        # Get consultation details from user
-        plant_name = input("Enter plant name: ")
-        symptoms = input("Enter observed symptoms: ")
-        region = input("Enter your region: ")
-        date_noticed = input("Enter date when symptoms were first noticed (YYYY-MM-DD): ")
-        treatments = input("Enter any treatments already attempted (if any): ")
-        
-        # Get image path
+        def get_valid_date_input(prompt):
+            while True:
+                date_str = input(prompt).strip()
+                try:
+                    # Parse the date string
+                    valid_date = datetime.strptime(date_str, "%Y-%m-%d")
+                    return date_str
+                except ValueError:
+                    print("Invalid date format. Please enter a valid date in YYYY-MM-DD format.")
+        # Validation for non-empty and alphabetic fields
+        def get_valid_input(prompt, field_name):
+            while True:
+                value = input(prompt).strip()
+                if not value:
+                    print(f"{field_name} cannot be empty!")
+                elif not value.isalpha():
+                    print(f"{field_name} must contain only letters!")
+                else:
+                    return value
+
+        # Get inputs with validation
+        plant_name = get_valid_input("Enter plant name: ", "Plant name")
+        symptoms = get_valid_input("Enter observed symptoms: ", "Symptoms")
+        region = get_valid_input("Enter your region: ", "Region")
+
+        # Date validation
+        date_noticed = get_valid_date_input("Enter date when symptoms were first noticed (YYYY-MM-DD): ")
+
+        # Allow treatments to be empty, no validation needed here
+        treatments = input("Enter any treatments already attempted (if any): ").strip()
+
+        # Path validation (basic check for non-empty value)
         image_path = input("Enter path to plant image (or press Enter to skip): ").strip('"').strip("'")
-        
+
+        # Generate description
+        description = f"{plant_name} - {symptoms} (Region: {region})"
         conn = create_connection()
         if conn:
             try:
                 cursor = conn.cursor()
                 cursor.execute('''
                     INSERT INTO consultations 
-                    (farmer_id, image_path, plant_name, symptoms, region, date_noticed, treatments, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (farmer_id,image_path if image_path else None, plant_name, symptoms,region,date_noticed,treatments,'pending'))
+                    (farmer_id, image_path, plant_name, symptoms, region, date_noticed, treatments, status, description)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)
+                ''', (farmer_id, image_path if image_path else None, plant_name, symptoms, region, date_noticed, treatments, 'pending',description))
                 conn.commit()
                 print("\nConsultation request created successfully!")
-                
+
                 # Add points for consultation request
                 self.add_consultation_points(farmer_id)
-                
+
             except Exception as e:
                 print(f"Error creating consultation: {e}")
             finally:
                 conn.close()
 
+
+    def get_non_empty_and_alpha_input(self, prompt, error_message):
+        """Ensure input is not empty and contains only alphabetic characters."""
+        value = input(prompt).strip()
+        while not value or not value.isalpha():
+            print(error_message)
+            value = input(prompt).strip()
+        return value
+
+    def get_valid_date_input(self, prompt):
+        """Ensure valid date format YYYY-MM-DD."""
+        while True:
+            date_input = input(prompt).strip()
+            if not date_input:
+                print("Date cannot be empty!")
+                continue
+            try:
+                # Validate if the input is a correct date
+                datetime.strptime(date_input, '%Y-%m-%d')
+                return date_input
+            except ValueError:
+                print("Invalid date format. Please enter a valid date in YYYY-MM-DD format.")
+
+    # Points for farmer for putting consultation request
     def add_consultation_points(self, farmer_id):
         conn = create_connection()
         if conn:
@@ -138,6 +188,7 @@ class ExpertConsultation:
             finally:
                 conn.close()
 
+    # view for farmer
     def view_farmer_consultations(self, farmer_id):
         conn = create_connection()
         if conn:
@@ -176,96 +227,7 @@ class ExpertConsultation:
             finally:
                 conn.close()
 
-    def view_pending_consultations(self, expert_id):
-        conn = create_connection()
-        if conn:
-            try:
-                cursor = conn.cursor()
-                cursor.execute('''
-                    SELECT c.id, u.username, c.description, c.image_path, c.created_at 
-                    FROM consultations c
-                    JOIN users u ON c.farmer_id = u.id
-                    WHERE c.status = 'pending'
-                    ORDER BY c.created_at
-                ''')
-                consultations = cursor.fetchall()
-                
-                if not consultations:
-                    print("\nNo pending consultations.")
-                    return
-
-                print("\n=== Pending Consultations ===")
-                for cons in consultations:
-                    print(f"\nConsultation ID: {cons[0]}")
-                    print(f"Farmer: {cons[1]}")
-                    print(f"Details:\n{cons[2]}")
-                    if cons[3]:  # if image path exists
-                        print(f"Image Path: {cons[3]}")
-                    print(f"Created: {cons[4]}")
-                    print("-" * 50)
-                
-                # Option to respond to a consultation
-                cons_id = input("\nEnter consultation ID to respond (or press Enter to skip): ")
-                if cons_id:
-                    self.respond_to_consultation(expert_id, int(cons_id))
-            finally:
-                conn.close()
-    def respond_to_consultation(self, expert_id, consultation_id):
-        # First check if consultation exists and is pending
-        conn = create_connection()
-        if conn:
-            try:
-                cursor = conn.cursor()
-                cursor.execute('''
-                    SELECT id, status 
-                    FROM consultations 
-                    WHERE id = ?
-                ''', (consultation_id,))
-                consultation = cursor.fetchone()
-                
-                if not consultation:
-                    print("\nError: Consultation ID does not exist!")
-                    return
-                
-                if consultation[1] != 'pending':
-                    print("\nError: This consultation has already been responded to!")
-                    return
-
-                print("\n=== Respond to Consultation ===")
-                diagnosis = input("Enter your diagnosis: ")
-                treatment = input("Enter recommended treatment: ")
-                additional_notes = input("Enter any additional notes: ")
-                
-                response = f"Diagnosis: {diagnosis}\nRecommended Treatment: {treatment}\n"
-                if additional_notes:
-                    response += f"Additional Notes: {additional_notes}"
-                
-                # Update consultation status
-                cursor.execute('''
-                    UPDATE consultations 
-                    SET status = 'completed', expert_id = ? 
-                    WHERE id = ?
-                ''', (expert_id, consultation_id))
-                
-                # Store expert response
-                cursor.execute('''
-                    INSERT INTO consultation_responses 
-                    (consultation_id, expert_id, expert_response) 
-                    VALUES (?, ?, ?)
-                ''', (consultation_id, expert_id, response))
-                
-                conn.commit()
-                print("\nResponse submitted successfully!")
-                
-                # Add points for expert
-                self.expert_rewards.award_consultation_completion(expert_id)
-                
-            except Exception as e:
-                print(f"Error submitting response: {e}")
-                conn.rollback()  
-            finally:
-                conn.close()
-
+    # view for expert for pending consultations 
     def view_pending_consultations(self, expert_id):
         conn = create_connection()
         if conn:
@@ -319,6 +281,8 @@ class ExpertConsultation:
                         print("Error: Please enter a valid number.")
             finally:
                 conn.close()
+
+    # for expert to respond to consultation requests
     def respond_to_consultation(self, expert_id, consultation_id):
         conn = create_connection()
         if conn:
@@ -441,6 +405,7 @@ class ExpertConsultation:
         response_time = (current_time - created_time).total_seconds() / 3600
         return int(response_time)
     
+    # for famer to submit
     def submit_disease_samples(self, farmer_id, unknown_disease_id, samples_path):
         """
         Submit samples for an unknown disease
@@ -476,6 +441,7 @@ class ExpertConsultation:
             finally:
                 conn.close()
 
+    # for farmer reward
     def add_sample_submission_points(self, farmer_id):
         """
         Add points for submitting disease samples
@@ -506,6 +472,7 @@ class ExpertConsultation:
             finally:
                 conn.close()
 
+    # bug fixing needed - view farmer
     def view_unknown_disease_requests(self, farmer_id):
         """
         View requests for additional samples for unknown diseases
@@ -547,3 +514,4 @@ class ExpertConsultation:
                         
             finally:
                 conn.close()
+
