@@ -1,2 +1,7 @@
+Already trained images:
 D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\test_images\test1_GR.JPG
 D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\test_images\test2_SLS.JPG
+
+Not trained image:
+D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\test_images\test3_PBS.JPG
+D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\test_images\test4_ABR.JPG
