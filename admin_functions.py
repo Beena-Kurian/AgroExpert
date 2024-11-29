@@ -1,6 +1,7 @@
 import os
 import tensorflow as tf
 import numpy as np
+from PIL import Image
 import matplotlib.pyplot as plt
 from datetime import datetime
 from db import create_connection
@@ -120,7 +121,8 @@ class AdminFunctions:
             print("2. View Model Versions")
             print("3. View Current Classes")
             print("4. Activate Model") 
-            print("5. Back")
+            print("5. View Latest Training Curves")
+            print("6. Back")
 
             choice = input("\nEnter your choice (1-5): ")
 
@@ -133,8 +135,10 @@ class AdminFunctions:
             elif choice == '4':
                 self.activate_model()  
             elif choice == '5':
+                self.view_plots()
+            elif choice =='6':
                 break
-
+               
     def view_model_versions(self):
         conn = create_connection()
         if conn:
@@ -443,13 +447,22 @@ class AdminFunctions:
 
         # Plot results
         acc_plot, loss_plot = trainer.plot_training_results()
-        print(f"\nTraining plots saved to: {acc_plot} and {loss_plot}")
+        # print(f"\nTraining plots saved to: {acc_plot} and {loss_plot}")
 
         # Test predictions
-    
         pred_plot = self.test_model_predictions(trainer.model, trainer.test_ds, trainer.class_names)
+        # print(f"Prediction samples saved to: {pred_plot}")
 
-        print(f"Prediction samples saved to: {pred_plot}")
+        # Ask user if they want to see the plots
+        while True:
+            view_plots = input("\nDo you want to see the training curves and sample results? (y/n): ").lower()
+            if view_plots == 'y':
+                self.view_plots()
+                break
+            elif view_plots == 'n':
+                break
+            else:
+                print("Invalid input. Please enter 'y' for yes or 'n' for no.")
 
         # Save model if accuracy is good
         if accuracy > 0.7:  # You can adjust this threshold
@@ -641,7 +654,42 @@ class AdminFunctions:
                 break
             else:
                 print("Invalid choice! Please try again.")
-                
+    
+    def view_plots(self):
+        plots_folder = "D:/Conestoga/prog_for_bigdata/PDD/AgroExpert/plots"
+        
+        if not os.path.exists(plots_folder):
+            print(f"Error: Plots folder not found at {plots_folder}")
+            return
+
+        plot_files = {
+            'accuracy': 'accuracy_plot.png',
+            'loss': 'loss_plot.png',
+            'predictions': 'prediction_samples.png'
+        }
+
+        fig, axes = plt.subplots(2, 2, figsize=(20, 20))
+        fig.suptitle("Latest Training Results", fontsize=16)
+
+        for i, (plot_type, filename) in enumerate(plot_files.items()):
+            file_path = os.path.join(plots_folder, filename)
+            if os.path.exists(file_path):
+                img = Image.open(file_path)
+                row = i // 2
+                col = i % 2
+                axes[row, col].imshow(img)
+                axes[row, col].axis('off')
+                axes[row, col].set_title(plot_type.capitalize())
+            else:
+                print(f"Warning: {filename} not found")
+
+        # Remove the empty subplot
+        fig.delaxes(axes[1, 1])
+
+        plt.tight_layout()
+        plt.show()
+
+        print("\nPlots displayed. Close the plot window to return to the menu.")         
 if __name__ == "__main__":
     admin = AdminFunctions()
     admin.display_admin_menu()
