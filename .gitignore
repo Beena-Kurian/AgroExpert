@@ -1,3 +1,4 @@
 Farmer_uploads/*
 !Farmer_uploads/.gitkeep
 __pycache__/
+!test_images/unknown_grape_disease.zip
