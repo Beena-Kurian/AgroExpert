@@ -43,12 +43,12 @@ class AgroExpert:
         role = self.current_user['role']
         if role == 'farmer':
             # # Notify farmer about replies
-            # print("-----Notifications-----:\n")
-            # self.consultation.notify_farmer_replies(self.current_user['id'])
+            print("----------------------Notifications---------------:\n")
+            self.consultation.notify_farmer_replies(self.current_user['id'])
             self.display_farmer_menu()
         elif role == 'expert':
             # Notify expert about new messages
-            print("-----Notifications----:\n")
+            print("----------------------Notifications---------------:\n")
             self.consultation.notify_expert_new_messages(self.current_user['id'])
             self.display_expert_menu()
         else:
