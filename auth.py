@@ -3,6 +3,7 @@ import sqlite3
 import hashlib
 from db import create_connection
 from getpass import getpass
+import re
 
 class Auth:
     @staticmethod
@@ -113,6 +114,27 @@ class Auth:
         expert_details['city'] = input("\nEnter your City/Town: ")
 
         return expert_details
+    
+    def check_existing_user(self, field, value):
+        """
+        Check if a user with the given field (username or email) exists in the database.
+        """
+        conn = create_connection()  # Create a database connection
+        if conn is not None:
+            try:
+                cursor = conn.cursor()
+                query = f"SELECT COUNT(*) FROM users WHERE {field} = ?"
+                cursor.execute(query, (value,))
+                result = cursor.fetchone()
+                return result[0] > 0
+            except sqlite3.Error as e:
+                print(f"Database error: {e}")
+                return False
+            finally:
+                conn.close()  # Ensure the connection is closed after use
+        else:
+            print("Failed to establish a database connection.")
+            return False
 
 
     def register_user(self, username, password, role, email, phone):
@@ -205,18 +227,78 @@ class Auth:
                 conn.close()
         return None
     
+    def validate_password(self,password):
+        """
+        Validate a password against defined criteria.
+        """
+        # Check for minimum length
+        if len(password) < 7:
+            print("Password must be at least 7 characters long.")
+            return False
+        # Add other validation checks as needed (uppercase, lowercase, etc.)
+        return True
+    
     def display_registration_menu(self):
         print("\n=== User Registration ===")
-        username = input("Enter username: ")
-        password = getpass("Enter password: ")  # Password will be hidden
-        role = input("Enter role (farmer/expert): ").lower()
-        email = input("Enter email: ")
-        phone = input("Enter phone number: ")
         
-        if role not in ['farmer', 'expert']:
-            print("Invalid role! Please choose 'farmer' or 'expert'")
-            return False
-            
+        # Check if username exists
+        while True:
+            username = input("Enter username: ")
+            if self.check_existing_user(field='username', value=username):
+                print("Username already exists! Please choose a different username.")
+            else:
+                break
+        
+        
+            # Validate password
+        while True:
+            password = getpass("Enter password: ")
+            if self.validate_password(password):
+                break
+            print("Please try again.")
+
+        print("Password accepted!")
+        
+        # Validate role using numeric selection
+        role = None
+        while True:
+            print("Select role:")
+            print("1. Farmer")
+            print("2. Expert")
+            role_choice = input("Enter your choice (1 or 2): ")
+            if role_choice == '1':
+                role = 'farmer'
+                break
+            elif role_choice == '2':
+                role = 'expert'
+                break
+            else:
+                print("Invalid choice! Please select 1 for Farmer or 2 for Expert.")
+
+        # Check if email exists
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        while True:
+            email = input("Enter email: ")
+            if not re.match(email_pattern, email):
+                print("Invalid email! Please enter a valid email address. Try again.")
+            elif self.check_existing_user(field='email', value=email):
+                print("Email already exists! Please use a different email.")
+            else:
+                break
+
+        # Validate phone number
+        phone_pattern = r'^\d{10}$'  # Assuming a 10-digit phone number format
+        while True:
+            phone = input("Enter phone number: ")
+            if not re.match(phone_pattern, phone):
+                print("Invalid phone number! Please enter a 10-digit number. Try again.")
+            elif self.check_existing_user(field='phone', value=phone):
+                print("Phone already exists! Please use a different phone number.")
+            else:
+                break
+
+
+        # Register user if all validations pass
         return self.register_user(username, password, role, email, phone)
 
     def display_login_menu(self):
