@@ -3,6 +3,7 @@ from disease_identification import DiseaseIdentification
 from expert_consultation import ExpertConsultation
 from rewards import *
 from news_updates import NewsUpdates
+from update_profile import update_contact_information
 import os
 
 class AgroExpert:
@@ -64,7 +65,8 @@ class AgroExpert:
             print("4. View Sample Requests") 
             print("5. View My Rewards")
             print("6. View News")
-            print("7. Logout")
+            print("7. Update Profile")
+            print("8. Logout")
             
             choice = input("Enter your choice (1-7): ")
             
@@ -81,6 +83,8 @@ class AgroExpert:
             elif choice == '6':
                 self.news.display_news_for_user()
             elif choice == '7':
+                update_contact_information(self.current_user['id'])
+            elif choice == '8':
                 self.current_user = None
                 break
             else:
