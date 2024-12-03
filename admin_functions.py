@@ -109,7 +109,8 @@ class AdminFunctions:
                                 WHERE id = ?
                             ''', (new_status, expert[0]))
                             break
-                
+                        else:
+                            print("Invalid input")
                 conn.commit()
                 print("Expert registrations processed successfully!")
             finally:
