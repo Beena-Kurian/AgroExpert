@@ -5,6 +5,8 @@ from rewards import *
 from news_updates import NewsUpdates
 from update_profile import update_contact_information
 import os
+from crop_management import *
+
 
 class AgroExpert:
     def __init__(self):
@@ -16,6 +18,7 @@ class AgroExpert:
         self.farmer_rewards = FarmerRewards()  # For Farmer-specific rewards
         self.expert_rewards = ExpertRewards()  # For Expert-specific rewards
         self.consultation = ExpertConsultation(self.disease_identifier, self.expert_rewards)
+        self.crop_management = CropManagement()
 
         
     def display_menu(self):
@@ -66,7 +69,8 @@ class AgroExpert:
             print("5. View My Rewards")
             print("6. View News")
             print("7. Update Profile")
-            print("8. Logout")
+            print("8. Manage My Crops")
+            print("9. Logout")
             
             choice = input("Enter your choice (1-7): ")
             
@@ -85,11 +89,35 @@ class AgroExpert:
             elif choice == '7':
                 update_contact_information(self.current_user['id'])
             elif choice == '8':
+                self.manage_crops()
+            elif choice == '9':
                 self.current_user = None
                 break
             else:
                 print("Invalid choice! Please try again.")
-
+    
+    def manage_crops(self):
+        while True:
+            print("\n=== Crop Management ===")
+            print("1. View My Crops")
+            print("2. Add New Crop")
+            print("3. Edit Crop")
+            print("4. Delete Crop")
+            print("5. Back to Farmer Menu")
+            choice = input("Enter your choice (1-5): ")
+            if choice == '1':
+                self.crop_management.view_crops(self.current_user['id'])
+            elif choice == '2':
+                self.crop_management.add_crop(self.current_user['id'])
+            elif choice == '3':
+                self.crop_management.edit_crop(self.current_user['id'])
+            elif choice == '4':
+                self.crop_management.delete_crop(self.current_user['id'])
+            elif choice == '5':
+                break
+            else:
+                print("Invalid choice! Please try again.")
+                
     def display_expert_menu(self):
         while True:
             print("\n=== Expert Menu ===")
