@@ -205,6 +205,19 @@ def init_database():
                     date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
+
+               # Create Crops table
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS crops (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    crop_name TEXT,
+                    variety TEXT,
+                    planting_date DATE,
+                    notes TEXT,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            ''')
             conn.commit()
             print("Database initialized successfully")
         except Error as e:
