@@ -91,7 +91,9 @@ Farmer can perform operations like:
 4. View Sample Requests
 5. View My Rewards
 6. View News
-7. Logout
+7. Update Profile
+8. Crop Management
+9. Logout
 
 Note: Experts must be approved by an admin before accessing the system.
 Once Expert is registered, and approved, he can perform operations like:
