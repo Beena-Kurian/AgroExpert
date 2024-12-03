@@ -124,7 +124,8 @@ class AgroExpert:
             print("1. View Pending Consultations")
             print("2. View My Rewards")
             print("3. View News")
-            print("4. Logout")
+            print("4. Update Profile")
+            print("5. Logout")
             
             choice = input("Enter your choice (1-4): ")
             
@@ -135,6 +136,8 @@ class AgroExpert:
             elif choice == '3':
                 self.news.display_news_for_user()
             elif choice == '4':
+                update_contact_information(self.current_user['id'])
+            elif choice == '5':
                 self.current_user = None
                 break
             else:
