@@ -103,7 +103,8 @@ Once Expert is registered, and approved, he can perform operations like:
       2. Request more images (Unknown Disease)
 3. View My Rewards
 4. View News
-5. Logout
+5. Update Profile
+6. Logout
    
 
 
