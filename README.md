@@ -93,7 +93,9 @@ Farmer can perform operations like:
 6. View News
 7. Update Profile
 8. Crop Management
-9. Logout
+9. View My Alerts
+10. Logout
+
 
 Note: Experts must be approved by an admin before accessing the system.
 Once Expert is registered, and approved, he can perform operations like:
@@ -101,8 +103,9 @@ Once Expert is registered, and approved, he can perform operations like:
 1. View Pending Consultations
       1. Provide diagnosis and treatment
       2. Request more images (Unknown Disease)
-3. View My Rewards
-4. View News
+2. View My Rewards
+3. View News
+4. Update Profile
 5. Logout
    
 
@@ -118,20 +121,31 @@ Admin can perform operations like:
       1. View All Users
       2. Approve/Reject Expert Registrations
       3. Back to Admin Menu
-3. Manage News
+2. Manage News
       1. Add News
       2. View All News
       3. Delete News
       4. Back
-5. View System Statistics
-6. Model Management
+3. View System Statistics
+4. Model Management
       1. Train New Model
            1. Train with existing classes
            2. Train with existing classes + new disease classes
-      3. View Model Versions
-      4. View Current Classes
-      5. Activate Model
+      2. View Model Versions
+      3. View Current Classes
+      4. Activate Model
+      5. View Latest Training Curves"
       6. Back
+5. Gift Card Management
+      1. Add a Single Gift Card
+      2. Add Multiple Gift Cards
+      3. View All Gift Cards
+      4. Deactivate a Gift Card
+      5. Back to Admin Menu
+6. Manage Disease Outbreaks
+      1. Create New Alert
+      2. View Existing Alerts
+      3. Back to Admin Menu
 7. Logout
 
 
