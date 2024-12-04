@@ -6,9 +6,12 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from db import create_connection
 from gift_card import *
+from disease_outbreak import DiseaseOutbreak
+
 
 class AdminFunctions:
-
+    def __init__(self):
+        self.disease_outbreak = DiseaseOutbreak()
     def display_admin_menu(self):
         while True:
             print("\n=== Admin Menu ===")
@@ -16,8 +19,9 @@ class AdminFunctions:
             print("2. Manage News")
             print("3. View System Statistics")
             print("4. Model Management")
-            print("5. Gift Card Management")  
-            print("6. Logout")
+            print("5. Gift Card Management")
+            print("6. Manage Disease Outbreaks")
+            print("7. Logout")
             
             choice = input("Enter your choice (1-5): ")
             
@@ -31,11 +35,32 @@ class AdminFunctions:
                 self.model_management_menu()  
             elif choice == '5':
                 self.gift_card_management_menu()
-            elif choice == '6':    
+            elif choice == '6':
+                self.manage_disease_outbreaks()
+            elif choice == '7':    
                 self.current_user = None
                 break
             else:
                 print("Invalid choice! Please try again.")
+
+    def manage_disease_outbreaks(self):
+        while True:
+            print("\n=== Manage Disease Outbreaks ===")
+            print("1. Create New Alert")
+            print("2. View Existing Alerts")
+            print("3. Back to Admin Menu")
+            
+            choice = input("Enter your choice (1-3): ")
+            
+            if choice == '1':
+                self.disease_outbreak.create_alert()
+            elif choice == '2':
+                self.disease_outbreak.view_alerts_for_admin() 
+            elif choice == '3':
+                break
+            else:
+                print("Invalid choice. Please try again.")
+
     def user_management_menu(self):
         while True:
             print("\n=== User Management ===")
