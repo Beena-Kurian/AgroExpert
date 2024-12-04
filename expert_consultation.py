@@ -84,24 +84,37 @@ class ExpertConsultation:
         print("\n=== Create New Consultation ===")
         
         def get_valid_date_input(prompt):
+            """Ensure valid date format YYYY-MM-DD and that it's not a future date."""
             while True:
-                date_str = input(prompt).strip()
+                date_input = input(prompt).strip()
+                
+                if not date_input:
+                    print("Date cannot be empty!")
+                    continue
+                
                 try:
-                    # Parse the date string
-                    valid_date = datetime.strptime(date_str, "%Y-%m-%d")
-                    return date_str
+                    # Validate if the input is a correct date
+                    input_date = datetime.strptime(date_input, '%Y-%m-%d')
+                    
+                    # Ensure the date is not in the future
+                    if input_date > datetime.now():
+                        print("Date cannot be in the future! Please enter a valid date.")
+                        continue
+                    
+                    return date_input
+                
                 except ValueError:
                     print("Invalid date format. Please enter a valid date in YYYY-MM-DD format.")
-        # Validation for non-empty and alphabetic fields
         def get_valid_input(prompt, field_name):
             while True:
                 value = input(prompt).strip()
                 if not value:
                     print(f"{field_name} cannot be empty!")
-                elif not value.isalpha():
-                    print(f"{field_name} must contain only letters!")
+                elif not all(char.isalpha() or char.isspace() for char in value):
+                    print(f"{field_name} must contain only letters and spaces!")
                 else:
                     return value
+
 
         # Get inputs with validation
         plant_name = get_valid_input("Enter plant name: ", "Plant name")
@@ -147,20 +160,42 @@ class ExpertConsultation:
             print(error_message)
             value = input(prompt).strip()
         return value
-
+    
     def get_valid_date_input(self, prompt):
-        """Ensure valid date format YYYY-MM-DD."""
+        """Ensure valid date format YYYY-MM-DD and that it's not a future date."""
         while True:
             date_input = input(prompt).strip()
+            
             if not date_input:
                 print("Date cannot be empty!")
                 continue
+            
             try:
                 # Validate if the input is a correct date
-                datetime.strptime(date_input, '%Y-%m-%d')
+                input_date = datetime.strptime(date_input, '%Y-%m-%d')
+                
+                # Ensure the date is not in the future
+                if input_date > datetime.now():
+                    print("Date cannot be in the future! Please enter a valid date.")
+                    continue
+                
                 return date_input
+            
             except ValueError:
                 print("Invalid date format. Please enter a valid date in YYYY-MM-DD format.")
+    # def get_valid_date_input(self, prompt):
+    #     """Ensure valid date format YYYY-MM-DD."""
+    #     while True:
+    #         date_input = input(prompt).strip()
+    #         if not date_input:
+    #             print("Date cannot be empty!")
+    #             continue
+    #         try:
+    #             # Validate if the input is a correct date
+    #             datetime.strptime(date_input, '%Y-%m-%d')
+    #             return date_input
+    #         except ValueError:
+    #             print("Invalid date format. Please enter a valid date in YYYY-MM-DD format.")
 
     # Points for farmer for putting consultation request
     def add_consultation_points(self, farmer_id):
