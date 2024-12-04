@@ -1,0 +1,15 @@
+=== Create Disease Outbreak Alert ===
+Enter disease name: black rot
+Enter affected crop: grape
+Enter affected region: waterloo
+Enter alert description: 
+Black rot has been identified in grape crops across the Waterloo region. This disease is caused by the Guignardia bidwellii fungus and primarily affects the fruit and leaves, leading to black lesions. Affected areas have reported a rapid spread due to the recent wet weather, making the fungus thrive. Early symptoms include darkened spots on leaves and fruit, which eventually lead to rotting. Farmers are advised to apply fungicides immediately and remove infected plant debris to control the spread. For more details, please contact your local agricultural extension office or expert.
+
+
+
+=== Create Disease Outbreak Alert ===
+Enter disease name: Apple Black rot
+Enter affected crop: Apple
+Enter affected region: Waterloo
+Enter alert description:
+Apple Black Rot, caused by the Neonectria ditissima fungus, has been reported in apple orchards across the Waterloo region. The disease primarily affects the fruit and leaves, leading to dark, sunken lesions that can eventually rot the affected parts of the apple. The infection spreads rapidly during wet conditions, particularly in areas with high humidity. Early signs include water-soaked lesions on the fruit's surface, followed by darkening and softening. Infected fruit may become mushy, leading to significant crop loss. Farmers are advised to monitor their orchards closely, remove infected fruits and leaves, and apply appropriate fungicides to limit the spread of the disease. Additionally, it's essential to manage orchard sanitation by removing fallen debris to reduce the chance of re-infection. For more details and recommendations on disease management, please consult with your local agricultural extension office.
