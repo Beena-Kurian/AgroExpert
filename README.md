@@ -103,10 +103,17 @@ Once Expert is registered, and approved, he can perform operations like:
 1. View Pending Consultations
       1. Provide diagnosis and treatment
       2. Request more images (Unknown Disease)
+<<<<<<< HEAD
 2. View My Rewards
 3. View News
 4. Update Profile
 5. Logout
+=======
+3. View My Rewards
+4. View News
+5. Update Profile
+6. Logout
+>>>>>>> origin/main
    
 
 
