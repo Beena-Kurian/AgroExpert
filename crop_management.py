@@ -1,12 +1,49 @@
 from db import create_connection
+import re
+from datetime import datetime
 
 class CropManagement:
     def add_crop(self, farmer_id):
         print("\n=== Add New Crop ===")
-        crop_name = input("Enter crop name: ").strip()
-        variety = input("Enter variety (if any): ").strip()
-        planting_date = input("Enter planting date (YYYY-MM-DD): ").strip()
-        notes = input("Enter any additional notes: ").strip()
+        
+        # Validate crop name: Only alphabetic characters and spaces
+        while True:
+            crop_name = input("Enter crop name: ").strip()
+            if re.match("^[A-Za-z ]+$", crop_name):  # Matches only alphabets and spaces
+                break
+            else:
+                print("Error: Crop name can only contain alphabetic characters and spaces.")
+        
+        # Validate variety: Only alphabetic characters and spaces (optional)
+        while True:
+            variety = input("Enter variety (if any): ").strip()
+            if variety == "" or re.match("^[A-Za-z ]+$", variety):  # Allows empty or alphabetic characters and spaces
+                break
+            else:
+                print("Error: Variety can only contain alphabetic characters and spaces.")
+        
+        # Date validation: ensure the entered date is not in the future
+        while True:
+            planting_date = input("Enter planting date (YYYY-MM-DD): ").strip()
+            try:
+                # Try to parse the date
+                planting_date_obj = datetime.strptime(planting_date, "%Y-%m-%d")
+                
+                # Check if the planting date is in the future
+                if planting_date_obj > datetime.now():
+                    print("Error: Planting date cannot be in the future. Please enter a valid date.")
+                else:
+                    break  # Valid date entered, exit the loop
+            except ValueError:
+                print("Error: Invalid date format. Please enter the date in YYYY-MM-DD format.")
+        
+        # Validate notes: Only alphabetic characters and spaces
+        while True:
+            notes = input("Enter any additional notes: ").strip()
+            if re.match("^[A-Za-z ]*$", notes):  # Allows alphabetic characters and spaces, empty is allowed
+                break
+            else:
+                print("Error: Notes can only contain alphabetic characters and spaces.")
 
         conn = create_connection()
         if conn:
