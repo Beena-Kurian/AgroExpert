@@ -11,109 +11,107 @@ class Auth:
         return hashlib.sha256(password.encode()).hexdigest()
     def collect_expert_details(self):
         expert_details = {}
-        
-        # Scopes of Practice
+
+        # Scopes of Practice with validation
         print("\n=== Scope of Practice ===")
         scopes = [
-            "Agri-Business",
-            "Communications",
-            "Economics",
-            "Finance & Services",
-            "Agri-Food & Nutrition",
-            "Agricultural Engineering",
-            "Agricultural Environment & Ecology",
-            "Animal Sciences",
-            "Plant Sciences",
-            "Soil Sciences"
+            "Agri-Business", "Communications", "Economics", "Finance & Services", 
+            "Agri-Food & Nutrition", "Agricultural Engineering", "Agricultural Environment & Ecology", 
+            "Animal Sciences", "Plant Sciences", "Soil Sciences"
         ]
         print("\nAvailable scopes:")
         for i, scope in enumerate(scopes, 1):
             print(f"{i}. {scope}")
-        scope_choice = input("\nSelect your primary scope (enter number): ")
-        expert_details['scope'] = scopes[int(scope_choice)-1]
 
-        # Specialization
+        while True:
+            try:
+                scope_choice = int(input("\nSelect your primary scope (enter number): "))
+                if 1 <= scope_choice <= len(scopes):
+                    expert_details['scope'] = scopes[scope_choice - 1]
+                    break
+                else:
+                    print(f"Please select a number between 1 and {len(scopes)}.")
+            except ValueError:
+                print("Invalid input! Please enter a number.")
+
+        # Specialization with validation
         print("\n=== Specialization ===")
         specializations = [
-            "Feed nutrition",
-            "Veterinary technician",
-            "Biosecurity",
-            "Entomology/Pest Management",
-            "Genetics",
-            "Fertility recommendations",
-            "Retailer",
-            "Soil/land classification",
-            "Contaminated sites",
-            "GIS",
-            "Regulation",
-            "Quality assurance",
-            "On-farm processing",
-            "Food science",
-            "Research",
-            "Education",
-            "Legal",
-            "Financial",
-            "Succession",
-            "Mediation",
-            "Appraisals",
-            "Marketing",
-            "Communications",
-            "Rural Planning",
-            "Impact Assessments",
-            "Policy",
-            "Project management",
-            "Other"
+            "Feed nutrition", "Veterinary technician", "Biosecurity", "Entomology/Pest Management", 
+            "Genetics", "Fertility recommendations", "Retailer", "Soil/land classification", 
+            "Contaminated sites", "GIS", "Regulation", "Quality assurance", "On-farm processing", 
+            "Food science", "Research", "Education", "Legal", "Financial", "Succession", "Mediation", 
+            "Appraisals", "Marketing", "Communications", "Rural Planning", "Impact Assessments", 
+            "Policy", "Project management", "Other"
         ]
         print("\nAvailable specializations:")
         for i, spec in enumerate(specializations, 1):
             print(f"{i}. {spec}")
-        spec_choice = input("\nSelect your specialization (enter number): ")
-        expert_details['specialization'] = specializations[int(spec_choice)-1]
 
-        # Commodity
+        while True:
+            try:
+                spec_choice = int(input("\nSelect your specialization (enter number): "))
+                if 1 <= spec_choice <= len(specializations):
+                    expert_details['specialization'] = specializations[spec_choice - 1]
+                    break
+                else:
+                    print(f"Please select a number between 1 and {len(specializations)}.")
+            except ValueError:
+                print("Invalid input! Please enter a number.")
+
+        # Commodity with validation
         print("\n=== Commodity ===")
         commodities = [
-            "Grains & oilseeds",
-            "Fruit",
-            "Vegetable",
-            "Flowers",
-            "Specialty crops",
-            "Forage & pasture",
-            "Horses",
-            "Cattle",
-            "Pork",
-            "Sheep / Goats",
-            "Poultry",
-            "Beekeeping",
-            "Aquaculture",
-            "Other"
+            "Grains & oilseeds", "Fruit", "Vegetable", "Flowers", "Specialty crops", 
+            "Forage & pasture", "Horses", "Cattle", "Pork", "Sheep / Goats", 
+            "Poultry", "Beekeeping", "Aquaculture", "Other"
         ]
         print("\nAvailable commodities:")
         for i, comm in enumerate(commodities, 1):
             print(f"{i}. {comm}")
-        comm_choice = input("\nSelect your primary commodity (enter number): ")
-        expert_details['commodity'] = commodities[int(comm_choice)-1]
 
-        # Region
+        while True:
+            try:
+                comm_choice = int(input("\nSelect your primary commodity (enter number): "))
+                if 1 <= comm_choice <= len(commodities):
+                    expert_details['commodity'] = commodities[comm_choice - 1]
+                    break
+                else:
+                    print(f"Please select a number between 1 and {len(commodities)}.")
+            except ValueError:
+                print("Invalid input! Please enter a number.")
+
+        # Region with validation
         print("\n=== Region ===")
         regions = [
-            "North",
-            "East",
-            "Central",
-            "Niagara",
-            "Mid-west",
-            "South-west"
+            "North", "East", "Central", "Niagara", "Mid-west", "South-west"
         ]
         print("\nAvailable regions:")
         for i, region in enumerate(regions, 1):
             print(f"{i}. {region}")
-        region_choice = input("\nSelect your region (enter number): ")
-        expert_details['region'] = regions[int(region_choice)-1]
 
-        # City/Town
-        expert_details['city'] = input("\nEnter your City/Town: ")
+        while True:
+            try:
+                region_choice = int(input("\nSelect your region (enter number): "))
+                if 1 <= region_choice <= len(regions):
+                    expert_details['region'] = regions[region_choice - 1]
+                    break
+                else:
+                    print(f"Please select a number between 1 and {len(regions)}.")
+            except ValueError:
+                print("Invalid input! Please enter a number.")
+
+        # City/Town with validation (ensure it's not empty)
+        while True:
+            city = input("\nEnter your City/Town: ").strip()
+            if city:
+                expert_details['city'] = city
+                break
+            else:
+                print("City/Town cannot be empty! Please enter a valid city or town.")
 
         return expert_details
+
     
     def check_existing_user(self, field, value):
         """
@@ -241,14 +239,21 @@ class Auth:
     def display_registration_menu(self):
         print("\n=== User Registration ===")
         
-        # Check if username exists
+        # Check if username exists and validate length
         while True:
-            username = input("Enter username: ")
-            if self.check_existing_user(field='username', value=username):
+            username = input("Enter username: ").strip()  # .strip() to remove any leading/trailing spaces
+
+            # Check if username length is at least 7 characters
+            if len(username) < 7:
+                print("Username must be at least 7 characters long.")
+            
+            # Check if the username already exists
+            elif self.check_existing_user(field='username', value=username):
                 print("Username already exists! Please choose a different username.")
+            
             else:
-                break
-        
+                break  # Exit the loop if both conditions are satisfied
+
         
             # Validate password
         while True:
