@@ -6,7 +6,7 @@ from news_updates import NewsUpdates
 from update_profile import update_contact_information
 import os
 from crop_management import *
-
+from disease_outbreak import *
 
 class AgroExpert:
     def __init__(self):
@@ -19,7 +19,7 @@ class AgroExpert:
         self.expert_rewards = ExpertRewards()  # For Expert-specific rewards
         self.consultation = ExpertConsultation(self.disease_identifier, self.expert_rewards)
         self.crop_management = CropManagement()
-
+        self.disease_outbreak = DiseaseOutbreak()
         
     def display_menu(self):
         while True:
@@ -49,6 +49,7 @@ class AgroExpert:
             # # Notify farmer about replies
             print("----------------------Notifications---------------:\n")
             self.consultation.notify_farmer_replies(self.current_user['id'])
+            self.disease_outbreak.view_alerts_for_farmer(self.current_user['id'])
             self.display_farmer_menu()
         elif role == 'expert':
             # Notify expert about new messages
@@ -70,7 +71,8 @@ class AgroExpert:
             print("6. View News")
             print("7. Update Profile")
             print("8. Manage My Crops")
-            print("9. Logout")
+            print("9. View My Alerts")
+            print("10. Logout")
             
             choice = input("Enter your choice (1-7): ")
             
@@ -91,6 +93,8 @@ class AgroExpert:
             elif choice == '8':
                 self.manage_crops()
             elif choice == '9':
+                self.disease_outbreak.view_alerts_for_farmer(self.current_user['id'])
+            elif choice == '10':
                 self.current_user = None
                 break
             else:
