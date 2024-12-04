@@ -218,6 +218,29 @@ def init_database():
                     FOREIGN KEY (user_id) REFERENCES users (id)
                 )
             ''')
+
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS disease_alerts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    disease_name TEXT NOT NULL,
+                    affected_crop TEXT NOT NULL,
+                    region TEXT NOT NULL,
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS farmer_notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                alert_id INTEGER,
+                notified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                viewed INTEGER DEFAULT 0,  -- New column to track if the notification has been viewed
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (alert_id) REFERENCES disease_alerts (id)
+            );
+            ''')
             conn.commit()
             print("Database initialized successfully")
         except Error as e:
