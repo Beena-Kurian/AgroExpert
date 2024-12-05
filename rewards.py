@@ -1,5 +1,3 @@
-
-# rewards.py
 from db import create_connection
 from gift_card import redeem_coupon
 from datetime import datetime
@@ -10,18 +8,12 @@ class RewardSystem:
         self.farmer_points = {
             'consultation_image': 10,  # High-quality image upload for consultation
             'new_disease_images': 500  # 50 images of new disease
-            # 'forum_post': 5,  # Points for each post
-            # 'forum_comment': 1  # Points for each comment
         }
         
         # Point structure for experts
         self.expert_points = {
             'consultation_completed': 20,  # For each consultation
             'fast_response': 5  # Bonus for < 24h response
-            # 'high_rating': 10,  # Bonus for 4-5 star rating
-            # 'article': 30,  # Published article
-            # 'forum_post': 20,  # Added post
-            # 'forum_reply': 5  # Replies to farmers posts
         }
 
     def get_user_points(self, user_id):
@@ -36,24 +28,6 @@ class RewardSystem:
                 conn.close()
         return 0
 
-    # def add_points(self, user_id, points):
-    #     try:
-    #         conn = create_connection()
-    #         cursor = conn.cursor()
-    #         # Use UPSERT for atomic insert/update operation
-    #         cursor.execute('''
-    #             INSERT INTO rewards (user_id, points) 
-    #             VALUES (?, ?)
-    #             ON CONFLICT(user_id) DO UPDATE SET points = points + excluded.points;
-    #         ''', (user_id, points))
-    #         conn.commit()
-    #         return True
-    #     except Exception as e:
-    #         print(f"Unexpected error: {e}")
-    #         return False
-    #     finally:
-    #         if conn:
-    #             conn.close()
     def add_points(self, user_id, points):
         """
         Adds points to the user's account. If the user does not exist, creates a new record.
@@ -94,29 +68,8 @@ class RewardSystem:
             conn.rollback()
             print(f"Error adding points: {e}")
             return False
-
         finally:
             conn.close()
-
-    # def add_points(self, user_id, points):
-    #     conn = create_connection()
-    #     if conn:
-    #         try:
-    #             cursor = conn.cursor()
-    #             # First try to update existing record
-    #             cursor.execute('''
-    #                 INSERT OR REPLACE INTO rewards (user_id, points) 
-    #                 VALUES (?, COALESCE((SELECT points + ? FROM rewards WHERE user_id = ?), ?))
-    #             ''', (user_id, points, user_id, points))
-    #             conn.commit()
-    #             return True
-    #         except Exception as e:
-    #             print(f"Error adding points: {e}")
-    #             return False
-    #         finally:
-    #             conn.close()
-    #     return False
-
 
     def deduct_points(self, user_id, points):
         current_points = self.get_user_points(user_id)
@@ -141,108 +94,11 @@ class RewardSystem:
         return False
 
 class FarmerRewards(RewardSystem):
-    # def award_consultation_image(self, farmer_id):
-    #     points = self.farmer_points['consultation_image']
-    #     if self.add_points(farmer_id, points):
-    #         self.log_reward_transaction(
-    #             farmer_id, 
-    #             'consultation_image', 
-    #             points, 
-    #             'Points awarded for high-quality consultation image'
-    #         )
-    #         return True
-    #     return False
-
-    def award_new_disease_images(self, farmer_id, image_count):
-        if image_count >= 50:
-            points = self.farmer_points['new_disease_images']
-            if self.add_points(farmer_id, points):
-                self.log_reward_transaction(
-                    farmer_id,
-                    'new_disease_images',
-                    points,
-                    f'Points awarded for submitting {image_count} images of new disease'
-                )
-                return True
-        return False
-
-    # def award_forum_activity(self, farmer_id, activity_type):
-    #     points = self.farmer_points[activity_type]
-    #     if self.add_points(farmer_id, points):
-    #         self.log_reward_transaction(
-    #             farmer_id,
-    #             activity_type,
-    #             points,
-    #             f'Points awarded for forum {activity_type}'
-    #         )
-    #         return True
-    #     return False
-
-    # def redeem_reward(self, farmer_id, points_to_redeem):
-    #     if points_to_redeem % 1000 != 0:
-    #         return False, "Points must be redeemed in multiples of 1000"
-        
-    #     # Calculate the reward amount
-    #     reward_amount = (points_to_redeem / 1000) * 10  # $10 for every 1000 points
-        
-    #     # Check if there are available gift cards
-    #     conn = create_connection()
-    #     cursor = conn.cursor()
-    #     # if conn:
-    #     #     conn.execute('PRAGMA journal_mode=WAL')
-    #     cursor.execute('''
-    #         SELECT id, code 
-    #         FROM coupons
-    #         WHERE value = ? AND is_active = 1
-    #         LIMIT 1
-    #     ''', (reward_amount,))
-    #     gift_card = cursor.fetchone()
-
-    #     if not gift_card:
-    #         conn.close()
-    #         return False, f"No available gift cards for ${reward_amount}. Check after few days..!"
-
-    #     gift_card_id, gift_card_code = gift_card
-
-    #     # Proceed with points deduction if a gift card is available
-    #     if self.deduct_points(farmer_id, points_to_redeem):
-    #         try:
-    #             # Mark gift card as redeemed and assign to farmer
-    #             cursor.execute('''
-    #                 INSERT INTO coupon_usage (coupon_id, user_id, redemption_date)
-    #                 VALUES (?, ?, ?)
-    #             ''', (gift_card_id, farmer_id, datetime.now()))
-    #             cursor.execute('''
-    #                 UPDATE coupons
-    #                 SET is_active = 0
-    #                 WHERE id = ?
-    #             ''', (gift_card_id,))
-
-    #             # Log the reward transaction
-    #             self.log_reward_transaction(
-    #                 farmer_id,
-    #                 'redemption',
-    #                 -points_to_redeem,
-    #                 f'Redeemed points for gift card {gift_card_code}'
-    #             )
-
-    #             conn.commit()
-    #             conn.close()
-    #             return True, f"Successfully redeemed {points_to_redeem} points for gift card {gift_card_code} (${reward_amount})."
-    #         except Exception as e:
-    #             conn.rollback()
-    #             conn.close()
-    #             return False, f"An error occurred during redemption: {str(e)}"
-    #         finally:
-    #             conn.close()
-    #     else:
-    #         conn.close()
-    #         return False, "Insufficient points"
     def redeem_reward(self, farmer_id, points_to_redeem):
         # Points must be in multiples of 1000
         if points_to_redeem % 1000 != 0:
             return False, "Points must be redeemed in multiples of 1000."
-        
+
         # Calculate reward amount
         reward_amount = (points_to_redeem / 1000) * 10  # $10 for every 1000 points
 
@@ -256,7 +112,7 @@ class FarmerRewards(RewardSystem):
 
             # Check for available gift cards
             cursor.execute('''
-                SELECT id, code 
+                SELECT code
                 FROM coupons
                 WHERE value = ? AND is_active = 1
                 LIMIT 1
@@ -266,98 +122,103 @@ class FarmerRewards(RewardSystem):
             if not gift_card:
                 return False, f"No available gift cards for ${reward_amount}. Check back later."
 
-            gift_card_id, gift_card_code = gift_card
+            gift_card_code = gift_card[0]
+            # print("Debug- gift_card_code: ", gift_card_code)
 
             # Deduct points from farmer's account
             if not self.deduct_points(farmer_id, points_to_redeem):
                 return False, "Insufficient points to redeem."
 
-            # Mark the gift card as redeemed and assign to the farmer
-            cursor.execute('''
-                INSERT INTO coupon_usage (coupon_id, user_id, redemption_date)
-                VALUES (?, ?, ?)
-            ''', (gift_card_id, farmer_id, datetime.now()))
-
-            cursor.execute('''
-                UPDATE coupons
-                SET is_active = 0
-                WHERE id = ?
-            ''', (gift_card_id,))
+            # Use the `redeem_coupon` function to handle coupon redemption
+            redeem_coupon(farmer_id, gift_card_code)
 
             # Log the reward transaction
             self.log_reward_transaction(
                 farmer_id,
                 'redemption',
                 -points_to_redeem,
-                f'Redeemed points for gift card {gift_card_code}'
+                f'Redeemed points for gift card {gift_card_code} (${reward_amount}).'
             )
-            conn.commit()
-            
+
             return True, f"Successfully redeemed {points_to_redeem} points for gift card {gift_card_code} (${reward_amount})."
 
         except Exception as e:
             conn.rollback()
             return False, f"An error occurred during redemption: {str(e)}"
-        
+
         finally:
             conn.close()
 
 class ExpertRewards(RewardSystem):
-    # def award_consultation_completion(self, expert_id, response_time=None):
-    #     points = self.expert_points['consultation_completed']
+
+    # def redeem_reward(self, expert_id, points_to_redeem):
+    #     if points_to_redeem % 1000 != 0:
+    #         return False, "Points must be redeemed in multiples of 1000"
         
-    #     # Add fast response bonus if applicable
-    #     if response_time and response_time <= 24:  # response time in hours
-    #         points += self.expert_points['fast_response']
-        
-    #     if self.add_points(expert_id, points):
+    #     if self.deduct_points(expert_id, points_to_redeem):
+    #         reward_amount = (points_to_redeem / 1000) * 10  # $10 for every 1000 points
     #         self.log_reward_transaction(
     #             expert_id,
-    #             'consultation_completed',
-    #             points,
-    #             'Points awarded for completing consultation'
+    #             'redemption',
+    #             -points_to_redeem,
+    #             f'Redeemed points for ${reward_amount} gift card'
     #         )
-    #         return True
-    #     return False
-
-    # def award_high_rating(self, expert_id):
-    #     points = self.expert_points['high_rating']
-    #     if self.add_points(expert_id, points):
-    #         self.log_reward_transaction(
-    #             expert_id,
-    #             'high_rating',
-    #             points,
-    #             'Bonus points for high rating'
-    #         )
-    #         return True
-    #     return False
-
-    # def award_content_contribution(self, expert_id, contribution_type):
-    #     points = self.expert_points[contribution_type]
-    #     if self.add_points(expert_id, points):
-    #         self.log_reward_transaction(
-    #             expert_id,
-    #             contribution_type,
-    #             points,
-    #             f'Points awarded for {contribution_type}'
-    #         )
-    #         return True
-    #     return False
-
+    #         return True, f"Successfully redeemed {points_to_redeem} points for ${reward_amount} gift card"
+    #     return False, "Insufficient points"
     def redeem_reward(self, expert_id, points_to_redeem):
+        # Points must be in multiples of 1000
         if points_to_redeem % 1000 != 0:
-            return False, "Points must be redeemed in multiples of 1000"
-        
-        if self.deduct_points(expert_id, points_to_redeem):
-            reward_amount = (points_to_redeem / 1000) * 10  # $10 for every 1000 points
+            return False, "Points must be redeemed in multiples of 1000."
+
+        # Calculate reward amount
+        reward_amount = (points_to_redeem / 1000) * 10  # $10 for every 1000 points
+
+        # Connect to the database
+        conn = create_connection()
+        if not conn:
+            return False, "Database connection failed."
+
+        try:
+            cursor = conn.cursor()
+
+            # Check for available gift cards
+            cursor.execute('''
+                SELECT code
+                FROM coupons
+                WHERE value = ? AND is_active = 1
+                LIMIT 1
+            ''', (reward_amount,))
+            gift_card = cursor.fetchone()
+
+            if not gift_card:
+                return False, f"No available gift cards for ${reward_amount}. Check back later."
+
+            gift_card_code = gift_card[0]
+            # print("Debug- gift_card_code: ", gift_card_code)
+
+            # Deduct points from farmer's account
+            if not self.deduct_points(expert_id, points_to_redeem):
+                return False, "Insufficient points to redeem."
+
+            # Use the `redeem_coupon` function to handle coupon redemption
+            redeem_coupon(expert_id, gift_card_code)
+
+            # Log the reward transaction
             self.log_reward_transaction(
                 expert_id,
                 'redemption',
                 -points_to_redeem,
-                f'Redeemed points for ${reward_amount} gift card'
+                f'Redeemed points for gift card {gift_card_code} (${reward_amount}).'
             )
-            return True, f"Successfully redeemed {points_to_redeem} points for ${reward_amount} gift card"
-        return False, "Insufficient points"
+
+            return True, f"Successfully redeemed {points_to_redeem} points for gift card {gift_card_code} (${reward_amount})."
+
+        except Exception as e:
+            conn.rollback()
+            return False, f"An error occurred during redemption: {str(e)}"
+
+        finally:
+            conn.close()
 
 def display_rewards_menu(user_id, user_role):
     if user_role == 'farmer':
