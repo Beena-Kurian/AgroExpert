@@ -775,6 +775,7 @@ class ExpertConsultation:
             finally:
                 conn.close()
 
+
     def view_unknown_disease_requests(self, farmer_id):
         """
         View requests for additional samples for unknown diseases.
@@ -783,7 +784,7 @@ class ExpertConsultation:
         if conn:
             try:
                 cursor = conn.cursor()
-                # Updated query to use related_consultation_id
+                # Fetch pending sample requests
                 cursor.execute('''
                     SELECT ud.id, ud.description, ud.symptoms, 
                         ud.related_consultation_id
@@ -792,29 +793,49 @@ class ExpertConsultation:
                     AND ud.status = 'samples_requested'
                 ''', (farmer_id,))
                 requests = cursor.fetchall()
-                
+
                 if not requests:
                     print("\nNo pending requests for disease samples.")
                     return
-                
+
+                # Display pending requests
                 print("\n=== Pending Sample Requests ===")
                 for req in requests:
                     print(f"\nRequest ID: {req[0]}")
                     print(f"Description: {req[1]}")
                     print(f"Symptoms to Document: {req[2]}")
-                    # print(f"Related Consultation: {req[3]}")
                     print("-" * 50)
-                    
-                # Option to submit samples
-                req_id = input("\nEnter request ID to submit samples (or press Enter to skip): ")
-                if req_id:
+
+                # Input request ID
+                while True:
+                    req_id = input("\nEnter request ID to submit samples (or press Enter to skip): ").strip()
+                    if not req_id:
+                        print("No request selected. Returning to the menu.")
+                        return
+                    elif req_id.isdigit():
+                        req_id = int(req_id)
+                        if any(req[0] == req_id for req in requests):
+                            break
+                        else:
+                            print("Error: Invalid Request ID. Please try again.")
+                    else:
+                        print("Error: Request ID must be a number. Please try again.")
+
+                # Input sample file path
+                while True:
                     samples_path = input("Enter path to samples zip file: ").strip('"').strip("'")
                     if os.path.exists(samples_path):
-                        self.submit_disease_samples(farmer_id, int(req_id), samples_path)
+                        break
                     else:
-                        print("Error: File not found!")
-                        
+                        print("Error: File not found. Please provide a valid path.")
+
+                # Submit disease samples
+                self.submit_disease_samples(farmer_id, req_id, samples_path)
+
+            except Exception as e:
+                print(f"An error occurred: {e}")
             finally:
                 conn.close()
+
 
 
