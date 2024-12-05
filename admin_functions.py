@@ -659,7 +659,6 @@ class AdminFunctions:
                         conn.rollback()
             finally:
                 conn.close()
-
     def gift_card_management_menu(self):
         """Menu for managing gift cards."""
         while True:
@@ -675,30 +674,94 @@ class AdminFunctions:
             if choice == '1':
                 try:
                     value = int(input("Enter the value of the gift card: "))
-                    days_valid = int(input("Enter the number of days the gift card is valid: "))
+                    if value < 10 or value % 10 != 0:
+                        print("Error: Value must be at least $10 and a multiple of 10.")
+                        continue  # Restart the loop to ask for a valid value
+                    
+                    days_valid = int(input("Enter the number of days the gift card is valid (minimum 30 days): "))
+                    if days_valid < 30:
+                        print("Error: The validity period must be at least 30 days.")
+                        continue  # Restart the loop to ask for a valid validity period
+
                     add_coupon(value, days_valid)
                 except ValueError:
                     print("Invalid input! Please enter numerical values.")
             elif choice == '2':
                 try:
                     value = int(input("Enter the value of the gift cards: "))
-                    days_valid = int(input("Enter the number of days the gift cards are valid: "))
+                    if value < 10 or value % 10 != 0:
+                        print("Error: Value must be at least $10 and a multiple of 10.")
+                        continue  # Restart the loop to ask for a valid value
+                    
+                    days_valid = int(input("Enter the number of days the gift cards are valid (minimum 30 days): "))
+                    if days_valid < 30:
+                        print("Error: The validity period must be at least 30 days.")
+                        continue  # Restart the loop to ask for a valid validity period
+
                     count = int(input("Enter the number of gift cards to generate: "))
+                    if count <= 0:
+                        print("Error: The number of gift cards must be a positive integer.")
+                        continue  # Restart the loop to ask for a valid count
+                    
                     add_multiple_coupons(value, days_valid, count)
                 except ValueError:
                     print("Invalid input! Please enter numerical values.")
+            
             elif choice == '3':
                 view_coupons()
+            
             elif choice == '4':
                 try:
-                    coupon_id = int(input("Enter the ID of the gift card to deactivate: "))
-                    deactivate_coupon(coupon_id)
+                    # coupon_id = int(input("Enter the ID of the gift card to deactivate: "))
+                    deactivate_coupon()
                 except ValueError:
                     print("Invalid input! Please enter a valid gift card ID.")
+            
             elif choice == '5':
                 break
+            
             else:
                 print("Invalid choice! Please try again.")
+
+    # def gift_card_management_menu(self):
+    #     """Menu for managing gift cards."""
+    #     while True:
+    #         print("\n=== Gift Card Management ===")
+    #         print("1. Add a Single Gift Card")
+    #         print("2. Add Multiple Gift Cards")
+    #         print("3. View All Gift Cards")
+    #         print("4. Deactivate a Gift Card")
+    #         print("5. Back to Admin Menu")
+            
+    #         choice = input("Enter your choice (1-5): ")
+            
+    #         if choice == '1':
+    #             try:
+    #                 value = int(input("Enter the value of the gift card: "))
+    #                 days_valid = int(input("Enter the number of days the gift card is valid: "))
+    #                 add_coupon(value, days_valid)
+    #             except ValueError:
+    #                 print("Invalid input! Please enter numerical values.")
+    #         elif choice == '2':
+    #             try:
+    #                 value = int(input("Enter the value of the gift cards: "))
+    #                 days_valid = int(input("Enter the number of days the gift cards are valid: "))
+    #                 count = int(input("Enter the number of gift cards to generate: "))
+    #                 add_multiple_coupons(value, days_valid, count)
+    #             except ValueError:
+    #                 print("Invalid input! Please enter numerical values.")
+    #         elif choice == '3':
+    #             view_coupons()
+    #         elif choice == '4':
+    #             try:
+    #                 coupon_id = int(input("Enter the ID of the gift card to deactivate: "))
+    #                 deactivate_coupon(coupon_id)
+    #             except ValueError:
+    #                 print("Invalid input! Please enter a valid gift card ID.")
+    #         elif choice == '5':
+    #             break
+    #         else:
+    #             print("Invalid choice! Please try again.")
     
     def view_plots(self):
         plots_folder = "D:/Conestoga/prog_for_bigdata/PDD/AgroExpert/plots"
