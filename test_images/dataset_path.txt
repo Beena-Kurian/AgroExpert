@@ -8,4 +8,4 @@ D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\Farmer_uploads
 unknown disease imageset path:
 Enter path to samples zip file: 
 
-D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\test_images\unknown_grape_disease.zip  
+D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\test_images\grape_unknown_disease_image.zip
