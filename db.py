@@ -165,12 +165,12 @@ def init_database():
                 )
             ''')
 
-            # For tracking unknown diseases
             c.execute('''
                 CREATE TABLE IF NOT EXISTS unknown_diseases (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     reported_by_farmer_id INTEGER,
                     verified_by_expert_id INTEGER,
+                    related_consultation_id INTEGER, -- Link to specific consultation
                     initial_image_path TEXT,
                     samples_folder_path TEXT,
                     description TEXT,
@@ -179,9 +179,11 @@ def init_database():
                     status TEXT DEFAULT 'pending', -- pending, samples_requested, samples_received, verified, training_in_progress, completed
                     admin_notes TEXT,
                     FOREIGN KEY (reported_by_farmer_id) REFERENCES users (id),
-                    FOREIGN KEY (verified_by_expert_id) REFERENCES users (id)
+                    FOREIGN KEY (verified_by_expert_id) REFERENCES users (id),
+                    FOREIGN KEY (related_consultation_id) REFERENCES consultations (id)
                 )
             ''')
+
 
             # For tracking disease samples collection
             c.execute('''
