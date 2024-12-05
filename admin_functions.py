@@ -76,6 +76,9 @@ class AdminFunctions:
                 self.manage_expert_registrations()
             elif choice == '3':
                 break
+            else:
+                print("Invalid choice")
+
     def view_all_users(self):
         conn = create_connection()
         if conn:
@@ -262,15 +265,29 @@ class AdminFunctions:
 
             choice = input("\nEnter your choice (1-4): ")
 
+            
             if choice == '1':
-                title = input("Enter news title: ")
+                # Validate the news title
+                while True:
+                    title = input("Enter news title: ").strip()
+                    if not title:
+                        print("Title cannot be empty. Please enter a valid title.")
+                    else:
+                        break
+
+                # Validate the news content
                 print("Enter news content (press Enter twice to finish):")
                 content_lines = []
                 while True:
                     line = input()
                     if line == "":
-                        break
-                    content_lines.append(line)
+                        if content_lines: 
+                            break
+                        else:
+                            print("Content cannot be empty. \nPlease enter valid content.(press Enter twice to finish):")
+                    else:
+                        content_lines.append(line)
+                
                 content = "\n".join(content_lines)
                 self.add_news(title, content)
             elif choice == '2':
@@ -279,6 +296,8 @@ class AdminFunctions:
                 self.delete_news()
             elif choice == '4':
                 break
+            else:
+                print("Invalid choice..!")
 
     def add_news(self, title, content):
         conn = create_connection()
