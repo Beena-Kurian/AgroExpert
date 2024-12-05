@@ -5,6 +5,13 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from rewards import RewardSystem, ExpertRewards, FarmerRewards
 from disease_identification import *
+import zipfile
+import shutil
+import os
+from PIL import Image
+import glob
+import random
+
 
 class ExpertConsultation:
     def __init__(self, disease_identifier, expert_rewards):
@@ -19,7 +26,7 @@ class ExpertConsultation:
         self.expert_rewards = expert_rewards
 
     def notify_farmer_replies(self, farmer_id):
-        conn = create_connection()  # Assuming you have a create_connection function
+        conn = create_connection()  
         if conn:
             try:
                 cursor = conn.cursor()
@@ -57,6 +64,186 @@ class ExpertConsultation:
                 print(f"Error fetching notifications: {e}")
             finally:
                 conn.close()
+    def notify_expert_new_sample_submissions(self, expert_id):
+        """
+        Notify expert about new sample submissions by farmers with status 'pending'.
+        """
+        conn = create_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT ds.id
+                    FROM disease_samples ds
+                    JOIN unknown_diseases ud ON ds.unknown_disease_id = ud.id
+                    WHERE ds.status = 'pending'  -- Only show pending submissions
+                    AND ud.verified_by_expert_id = ?
+                ''', (expert_id,))
+                submissions = cursor.fetchall()
+
+                if submissions:
+                    print(f"\nYou have {len(submissions)} new sample submission(s) from farmers.")
+                else:
+                    print("\nYou have no new sample submissions.")
+            finally:
+                conn.close()
+
+    def extract_zip(self, zip_path, extract_folder):
+        """ Extract files from a zip file, handling nested folders. """
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_folder)       
+        print(f"Extracted files to {extract_folder}")
+
+
+    def review_sample_submissions(self, expert_id):
+        conn = create_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''SELECT ds.id, ud.description, ds.samples_zip_path 
+                                FROM disease_samples ds
+                                JOIN unknown_diseases ud ON ds.unknown_disease_id = ud.id
+                                WHERE ds.status = 'pending' AND ud.verified_by_expert_id = ?''', (expert_id,))
+                submissions = cursor.fetchall()
+
+                if submissions:
+                    print("Pending Sample Submissions:")
+
+                    # Clean up the 'temp' folder before processing new submissions
+                    self.clean_temp_folder()
+
+                    for submission in submissions:
+                        print(f"- Sample ID: {submission[0]}, Disease: {submission[1]}, Samples Path: {submission[2]}")
+                        # Extract the zip file
+                        zip_path = submission[2]
+                        extract_folder = os.path.join("Farmer_uploads", "temp", f"sample_{submission[0]}")
+                        os.makedirs(extract_folder, exist_ok=True)
+                        self.extract_zip(zip_path, extract_folder)
+
+                        # Check if any images exist after extraction
+                        image_files = [f for f in os.listdir(extract_folder) if f.endswith(('.jpg', '.jpeg', '.png', '.JPG'))]
+                        total_images = len(image_files)
+
+                        # Ensure there are images to review
+                        if total_images == 0:
+                            print(f"No images found in the extracted folder for Sample ID {submission[0]}.")
+                            continue
+
+                        # Ask expert how many images to review
+                        num_images = int(input(f"How many images do you want to review (1 to {total_images}): "))
+
+                        # Ensure the requested number is within the available images
+                        if num_images > total_images:
+                            print(f"Error: Requested more images than available. Only {total_images} images are available.")
+                            continue
+
+                        # Display images one by one
+                        self.display_samples_one_at_a_time(extract_folder, num_images)
+
+                        # After reviewing all images, ask the expert for decision on the entire submission
+                        submission_decision = input("Do you approve this entire submission? (approve/reject/pending): ").lower()
+
+                        if submission_decision == 'approve':
+                            # Get crop and disease name from expert input
+                            crop_name = input("Enter the crop name: ").strip()
+                            disease_name = input("Enter the disease name: ").strip()
+
+                            # Normalize the folder name (ensure no spaces, use underscores)
+                            disease_name = disease_name.replace(" ", "_")  # Replace spaces with underscores
+                            approved_folder = os.path.join("Farmer_uploads", f"{crop_name}__{disease_name}")
+
+                            # Check if the folder already exists
+                            if not os.path.exists(approved_folder):
+                                os.makedirs(approved_folder, exist_ok=True)
+                                print(f"Created new folder for {crop_name}__{disease_name}.")
+                            else:
+                                print(f"Folder {approved_folder} already exists. Merging images.")
+
+                            # Move the new images to the existing/created folder
+                            for image_file in image_files:
+                                shutil.move(os.path.join(extract_folder, image_file), os.path.join(approved_folder, image_file))
+
+                            self.update_sample_status(submission[0], status='verified')
+                            print(f"Sample ID {submission[0]} has been approved and images are moved to {approved_folder}.")
+                            self.remove_folder(extract_folder)
+                        elif submission_decision == 'reject':
+                            # If rejected, remove the folder
+                            self.remove_folder(extract_folder)
+                            self.update_sample_status(submission[0], status='rejected')
+                            print(f"Sample ID {submission[0]} has been rejected.")
+                        elif submission_decision == 'pending':
+                            # Mark as pending and remove the temp folder
+                            self.remove_folder(extract_folder)
+                            self.update_sample_status(submission[0], status='pending')
+                            print(f"Sample ID {submission[0]} is marked as pending.")
+                        else:
+                            print("Invalid input. Please enter 'approve', 'reject', or 'pending'.")
+                else:
+                    print("\nNo pending sample submissions to review.")
+            except Exception as e:
+                print(f"Error: {e}")
+            finally:
+                self.clean_temp_folder()
+                conn.close()
+
+    def remove_folder(self, folder_path):
+        """ Removes a folder and all its contents """
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
+            print(f"Temporary folder {folder_path} has been removed.")
+
+    def clean_temp_folder(self):
+        """ Cleans the temp folder """
+        temp_folder_path = os.path.join("Farmer_uploads", "temp")
+        if os.path.exists(temp_folder_path):
+            shutil.rmtree(temp_folder_path)
+            print(f"Temp folder {temp_folder_path} has been removed.")
+    
+    def display_samples_one_at_a_time(self, extract_folder, num_images):
+        # List all files in the extracted folder
+        image_files = [f for f in os.listdir(extract_folder) if f.endswith(('.jpg', '.jpeg', '.png', '.JPG'))]
+
+        # Ensure the requested number of images doesn't exceed the total number available
+        total_images = len(image_files)
+        if num_images > total_images:
+            print(f"Error: Requested more images than available. Only {total_images} images are uploaded.")
+            num_images = total_images
+
+        # Randomly select the images to review
+        selected_images = random.sample(image_files, num_images)
+
+        # Display the images one by one
+        for img in selected_images:
+            img_path = os.path.join(extract_folder, img)
+            print(f"Displaying image: {img_path}")
+
+            # Open and display the image
+            with Image.open(img_path) as img_obj:
+                img_obj.show()
+
+            # Wait for the user to acknowledge before showing the next image
+            input("Press Enter to view the next image...")
+
+        print("\n")
+
+    def update_sample_status(self, sample_id, status='verified'):
+        """
+        Update the status of the sample after it has been reviewed by the expert.
+        
+        Args:
+            sample_id (int): The ID of the sample being updated.
+            status (str): The new status of the sample (e.g., 'verified', 'rejected').
+        """
+        conn = create_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                # Update the sample status in the database
+                cursor.execute('''UPDATE disease_samples SET status = ? WHERE id = ?''', (status, sample_id))
+                conn.commit()
+                print(f"Sample ID {sample_id} status updated to '{status}'")
+            finally:
+                conn.close()
 
     def notify_expert_new_messages(self, expert_id):
         conn = create_connection()
@@ -79,6 +266,37 @@ class ExpertConsultation:
             finally:
                 conn.close()
 
+    import os
+
+    # Path validation with detailed checks
+    def validate_image_path(self):
+        while True:
+            image_path = input("Enter path to plant image (or press Enter to skip): ").strip('"').strip("'")
+
+            # Allow skipping
+            if image_path == "":
+                print("No image path provided. Skipping.")
+                return None
+
+            # Check if path exists
+            if not os.path.exists(image_path):
+                print("Error: The path does not exist. Please enter a valid path.")
+                continue
+
+            # Check if it's a file
+            if not os.path.isfile(image_path):
+                print("Error: The path is not a file. Please enter a valid file path.")
+                continue
+
+            # Validate file extension
+            valid_extensions = (".jpg", ".jpeg", ".png", ".bmp", ".gif")
+            if not image_path.lower().endswith(valid_extensions):
+                print("Error: The file is not a valid image. Supported formats are: .jpg, .jpeg, .png, .bmp, .gif")
+                continue
+
+            # If all validations pass
+            print("Valid image path provided.")
+            return image_path
 
     def create_new_consultation(self, farmer_id):
         print("\n=== Create New Consultation ===")
@@ -127,8 +345,13 @@ class ExpertConsultation:
         # Allow treatments to be empty, no validation needed here
         treatments = input("Enter any treatments already attempted (if any): ").strip()
 
-        # Path validation (basic check for non-empty value)
-        image_path = input("Enter path to plant image (or press Enter to skip): ").strip('"').strip("'")
+
+        # # Path validation (basic check for non-empty value)
+        image_path = self.validate_image_path()
+        if image_path:
+            print(f"Processing image: {image_path}")
+        else:
+            print("No image will be processed.")
 
         # Generate description
         description = f"{plant_name} - {symptoms} (Region: {region})"
@@ -145,7 +368,7 @@ class ExpertConsultation:
                 print("\nConsultation request created successfully!")
 
                 # Add points for consultation request
-                self.add_consultation_points(farmer_id)
+                self.add_consultation_request_points(farmer_id)
 
             except Exception as e:
                 print(f"Error creating consultation: {e}")
@@ -183,22 +406,10 @@ class ExpertConsultation:
             
             except ValueError:
                 print("Invalid date format. Please enter a valid date in YYYY-MM-DD format.")
-    # def get_valid_date_input(self, prompt):
-    #     """Ensure valid date format YYYY-MM-DD."""
-    #     while True:
-    #         date_input = input(prompt).strip()
-    #         if not date_input:
-    #             print("Date cannot be empty!")
-    #             continue
-    #         try:
-    #             # Validate if the input is a correct date
-    #             datetime.strptime(date_input, '%Y-%m-%d')
-    #             return date_input
-    #         except ValueError:
-    #             print("Invalid date format. Please enter a valid date in YYYY-MM-DD format.")
+
 
     # Points for farmer for putting consultation request
-    def add_consultation_points(self, farmer_id):
+    def add_consultation_request_points(self, farmer_id):
         conn = create_connection()
         if conn:
             try:
@@ -316,112 +527,169 @@ class ExpertConsultation:
                         print("Error: Please enter a valid number.")
             finally:
                 conn.close()
+    def add_consultation_response_points(self, expert_id, response_time):
+        conn = create_connection()
+        if conn:
+            try:
+                # conn.execute("PRAGMA busy_timeout = 5000")  # Wait up to 5 seconds for the lock
+                cursor = conn.cursor()
 
-    # for expert to respond to consultation requests
+                # Add fast response bonus if applicable
+                if response_time and response_time <= 24:  # response time in hours
+                    additional_points = 25
+                else:
+                    additional_points = 20
+
+                # Update points for the expert
+                cursor.execute('''
+                    UPDATE rewards 
+                    SET points = points + ?
+                    WHERE user_id = ?
+                ''', (additional_points, expert_id))
+
+                # Log the transaction
+                cursor.execute('''
+                    INSERT INTO reward_transactions 
+                    (user_id, action, points, description)
+                    VALUES (?, ?, ?, ?)
+                ''', (expert_id, 'consultation_completed', additional_points, 
+                    'Points for completing consultation'))
+
+                conn.commit()
+            except Exception as e:
+                print(f"Error adding reward points: {e}")
+            finally:
+                conn.close()
+
+    # Function to allow an expert to respond to consultation requests
     def respond_to_consultation(self, expert_id, consultation_id):
         conn = create_connection()
         if conn:
             try:
                 cursor = conn.cursor()
+                
+                # Fetch consultation details
                 cursor.execute('''
-                    SELECT id, status, farmer_id 
+                    SELECT id, status, farmer_id, created_at 
                     FROM consultations 
                     WHERE id = ?
                 ''', (consultation_id,))
                 consultation = cursor.fetchone()
-                
+
                 if not consultation:
                     print("\nError: Consultation ID does not exist!")
                     return
-                
                 if consultation[1] != 'pending':
                     print("\nError: This consultation has already been responded to!")
                     return
 
-                print("\n=== Respond to Consultation ===")
-                print("1. Provide diagnosis and treatment")
-                print("2. Request more images (Unknown Disease)")
-                choice = input("Enter your choice (1-2): ")
+                created_at = consultation[3]
+
+                # # User choice
+                # print("\n=== Respond to Consultation ===")
+                # print("1. Provide diagnosis and treatment")
+                # print("2. Request more images (Unknown Disease)")
+                # choice = input("Enter your choice (1-2): ")
+
+                # if choice == "1":
+                #     # Diagnosis and treatment
+                #     diagnosis = input("Enter your diagnosis: ").strip()
+                #     treatment = input("Enter recommended treatment: ").strip()
+                #     additional_notes = input("Enter any additional notes: ").strip()
+                # User choice
+                while True:
+                    print("\n=== Respond to Consultation ===")
+                    print("1. Provide diagnosis and treatment")
+                    print("2. Request more images (Unknown Disease)")
+                    choice = input("Enter your choice (1-2): ").strip()
+
+                    if choice in ["1", "2"]:
+                        break  # Valid choice, exit loop
+                    else:
+                        print("Invalid choice. Please enter 1 or 2.")
 
                 if choice == "1":
-                    # Normal consultation response
-                    diagnosis = input("Enter your diagnosis: ")
-                    treatment = input("Enter recommended treatment: ")
-                    additional_notes = input("Enter any additional notes: ")
-                    
+                    # Diagnosis and treatment
+                    while True:
+                        diagnosis = input("Enter your diagnosis: ").strip()
+                        if diagnosis:
+                            break
+                        else:
+                            print("Diagnosis cannot be empty. Please provide a valid diagnosis.")
+
+                    while True:
+                        treatment = input("Enter recommended treatment: ").strip()
+                        if treatment:
+                            break
+                        else:
+                            print("Treatment cannot be empty. Please provide a valid treatment.")
+
+                    additional_notes = input("Enter any additional notes (optional): ").strip()
                     response = f"Diagnosis: {diagnosis}\nRecommended Treatment: {treatment}\n"
                     if additional_notes:
                         response += f"Additional Notes: {additional_notes}"
-                    
-                    # Update consultation status
+
+                    # Update consultation and store response
                     cursor.execute('''
                         UPDATE consultations 
                         SET status = 'completed', expert_id = ? 
                         WHERE id = ?
                     ''', (expert_id, consultation_id))
-                    
-                    # Store expert response
+
                     cursor.execute('''
                         INSERT INTO consultation_responses 
                         (consultation_id, expert_id, expert_response) 
                         VALUES (?, ?, ?)
                     ''', (consultation_id, expert_id, response))
-                    
+                    print("\nResponse saved successfully.")
+
                 elif choice == "2":
-                    # Request for more images - Unknown Disease
-                    description = input("Enter description of what you observe: ")
-                    symptoms = input("Enter specific symptoms to look for: ")
-                    
-                    # Create unknown disease record
+                    # Request more images
+                    description = input("Enter description of what you observe: ").strip()
+                    symptoms = input("Enter specific symptoms to look for: ").strip()
+
                     cursor.execute('''
                         INSERT INTO unknown_diseases 
                         (reported_by_farmer_id, verified_by_expert_id, description, 
                         symptoms, status)
                         VALUES (?, ?, ?, ?, 'samples_requested')
                     ''', (consultation[2], expert_id, description, symptoms))
-                    
-                    unknown_disease_id = cursor.lastrowid
-                    
-                    # Update consultation status
+
                     cursor.execute('''
                         UPDATE consultations 
                         SET status = 'awaiting_samples', expert_id = ? 
                         WHERE id = ?
                     ''', (expert_id, consultation_id))
-                    
-                    # Store expert request
+
                     response = f"UNKNOWN DISEASE DETECTED\nDescription: {description}\n" \
                             f"Observed Symptoms: {symptoms}\n" \
                             f"Action Required: Please provide more image samples " \
                             f"(minimum 50 images) as a zip file."
-                    
+
                     cursor.execute('''
                         INSERT INTO consultation_responses 
                         (consultation_id, expert_id, expert_response) 
                         VALUES (?, ?, ?)
                     ''', (consultation_id, expert_id, response))
-                    
                     print("\nRequest for more samples submitted successfully!")
-                    print("Farmer will be notified to provide more images.")
-                
-                # Calculate response time if needed
-                cursor.execute('''
-                    SELECT created_at FROM consultations WHERE id = ?
-                ''', (consultation_id,))
-                created_at = cursor.fetchone()[0]
+
+                else:
+                    print("\nInvalid choice! Please try again.")
+                    return
+                conn.commit()
+                # Calculate response time
                 response_time = self.calculate_response_time(created_at)
 
-                conn.commit()
-                print("Response saved successfully.")
-                # Award points for the completed consultation
-                if self.expert_rewards.award_consultation_completion(expert_id, response_time):
+                # Award points to expert
+                if self.add_consultation_response_points(expert_id, response_time):
                     print("Reward points successfully awarded to the expert.")
-                
+               
             except Exception as e:
                 print(f"Error submitting response: {e}")
                 conn.rollback()
             finally:
                 conn.close()
+
 
     @staticmethod
     def calculate_response_time(created_at):
@@ -488,7 +756,7 @@ class ExpertConsultation:
                 # Add 500 points for submitting samples (50 images)
                 cursor.execute('''
                     UPDATE rewards 
-                    SET points = points + 500 
+                    SET points = points + 500
                     WHERE user_id = ?
                 ''', (farmer_id,))
                 
@@ -507,20 +775,19 @@ class ExpertConsultation:
             finally:
                 conn.close()
 
-    # bug fixing needed - view farmer
     def view_unknown_disease_requests(self, farmer_id):
         """
-        View requests for additional samples for unknown diseases
+        View requests for additional samples for unknown diseases.
         """
         conn = create_connection()
         if conn:
             try:
                 cursor = conn.cursor()
+                # Updated query to use related_consultation_id
                 cursor.execute('''
                     SELECT ud.id, ud.description, ud.symptoms, 
-                        c.id as consultation_id
+                        ud.related_consultation_id
                     FROM unknown_diseases ud
-                    JOIN consultations c ON ud.reported_by_farmer_id = c.farmer_id
                     WHERE ud.reported_by_farmer_id = ? 
                     AND ud.status = 'samples_requested'
                 ''', (farmer_id,))
@@ -535,7 +802,7 @@ class ExpertConsultation:
                     print(f"\nRequest ID: {req[0]}")
                     print(f"Description: {req[1]}")
                     print(f"Symptoms to Document: {req[2]}")
-                    print(f"Related Consultation: {req[3]}")
+                    # print(f"Related Consultation: {req[3]}")
                     print("-" * 50)
                     
                 # Option to submit samples
@@ -549,4 +816,5 @@ class ExpertConsultation:
                         
             finally:
                 conn.close()
+
 
