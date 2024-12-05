@@ -80,14 +80,14 @@ def add_multiple_coupons(value, days_valid, count):
     conn.close()
 
     print(f"{count} gift cards of value ${value} created. All expire on {expiration_date}.")
+
 def redeem_coupon(user_id, code):
     """Redeem a coupon for a user."""
     conn = create_connection()
-    conn.execute('PRAGMA journal_mode=WAL')
+    # conn.execute('PRAGMA journal_mode=WAL')
     if conn:
         try:
             cursor = conn.cursor()
-
             # Check if the coupon is valid
             cursor.execute('''
                 SELECT id, value, is_active, expiration_date
@@ -117,7 +117,7 @@ def redeem_coupon(user_id, code):
             cursor.execute('UPDATE coupons SET is_active = 0 WHERE id = ?', (coupon_id,))
             conn.commit()
 
-            print(f"Coupon {code} redeemed successfully for User ID {user_id}, Value: ${coupon[1]}")
+            # print(f"Coupon {code} redeemed successfully for User ID {user_id}, Value: ${coupon[1]}")
         except Exception as e:
             print(f"Database error: {e}")
         finally:
