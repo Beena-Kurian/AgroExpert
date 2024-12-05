@@ -190,14 +190,14 @@ class ExpertConsultation:
         """ Removes a folder and all its contents """
         if os.path.exists(folder_path):
             shutil.rmtree(folder_path)
-            print(f"Temporary folder {folder_path} has been removed.")
+            # print(f"Temporary folder {folder_path} has been removed.")
 
     def clean_temp_folder(self):
         """ Cleans the temp folder """
         temp_folder_path = os.path.join("Farmer_uploads", "temp")
         if os.path.exists(temp_folder_path):
             shutil.rmtree(temp_folder_path)
-            print(f"Temp folder {temp_folder_path} has been removed.")
+            # print(f"Temp folder {temp_folder_path} has been removed.")
     
     def display_samples_one_at_a_time(self, extract_folder, num_images):
         # List all files in the extracted folder
@@ -241,7 +241,7 @@ class ExpertConsultation:
                 # Update the sample status in the database
                 cursor.execute('''UPDATE disease_samples SET status = ? WHERE id = ?''', (status, sample_id))
                 conn.commit()
-                print(f"Sample ID {sample_id} status updated to '{status}'")
+                # print(f"Sample ID {sample_id} status updated to '{status}'")
             finally:
                 conn.close()
 
