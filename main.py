@@ -55,6 +55,7 @@ class AgroExpert:
             # Notify expert about new messages
             print("----------------------Notifications---------------:\n")
             self.consultation.notify_expert_new_messages(self.current_user['id'])
+            self.consultation.notify_expert_new_sample_submissions(self.current_user['id'])
             self.display_expert_menu()
         else:
             print("Invalid role! Please try again.")
@@ -129,7 +130,8 @@ class AgroExpert:
             print("2. View My Rewards")
             print("3. View News")
             print("4. Update Profile")
-            print("5. Logout")
+            print("5. Review Pending Sample Submissions")
+            print("6. Logout")
             
             choice = input("Enter your choice (1-4): ")
             
@@ -142,6 +144,8 @@ class AgroExpert:
             elif choice == '4':
                 update_contact_information(self.current_user['id'])
             elif choice == '5':
+                self.consultation.review_sample_submissions(self.current_user['id'])
+            elif choice == '6':
                 self.current_user = None
                 break
             else:
