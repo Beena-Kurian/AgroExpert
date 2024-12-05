@@ -2,7 +2,12 @@ dataset(35 classes):
 
 D:\Conestoga\prog_for_bigdata\PlantDiseaseDetection\plantvillage dataset\color 
 
+initially not trained classes:
+Apple_Black_rot
+Peach_Bacterial_spot
+Grape_black_rot
 dataset(3 classes from farmer):
+
 D:\Conestoga\prog_for_bigdata\PDD\AgroExpert\Farmer_uploads
 
 unknown disease imageset path:
