@@ -90,8 +90,14 @@ Farmer can perform operations like:
 3. View My Consultations
 4. View Sample Requests
 5. View My Rewards
+      1. View Points History
+      2. Redeem Points
+      3. Back to Main Menu
 6. View News
 7. Update Profile
+      1. Update Email
+      2. Update Phone Number
+      3. Go Back
 8. Crop Management
 9. View My Alerts
 10. Logout
@@ -103,19 +109,17 @@ Once Expert is registered, and approved, he can perform operations like:
 1. View Pending Consultations
       1. Provide diagnosis and treatment
       2. Request more images (Unknown Disease)
-<<<<<<< HEAD
 2. View My Rewards
+      1. View Points History
+      2. Redeem Points
+      3. Back to Main Menu
 3. View News
 4. Update Profile
-5. Logout
-=======
-3. View My Rewards
-4. View News
-5. Update Profile
+      1. Update Email
+      2. Update Phone Number
+      3. Go Back
+5. Review Pending Sample Submissions
 6. Logout
->>>>>>> origin/main
-   
-
 
 ### Step 3: Run `admin_functions.py`
 
@@ -141,7 +145,7 @@ Admin can perform operations like:
       2. View Model Versions
       3. View Current Classes
       4. Activate Model
-      5. View Latest Training Curves"
+      5. View Latest Training Curves
       6. Back
 5. Gift Card Management
       1. Add a Single Gift Card
