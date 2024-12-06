@@ -1,4 +1,5 @@
 import os
+import re
 import tensorflow as tf
 import numpy as np
 from PIL import Image
@@ -365,8 +366,41 @@ class AdminFunctions:
                     print("\nNews item not found!")
             finally:
                 conn.close()
-
+    def is_valid_image(self, file_path):
+        """
+        Check if the file has a valid image extension.
+        """
+        valid_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.gif']
+        _, ext = os.path.splitext(file_path)
+        return ext.lower() in valid_extensions
+    
+    def validate_image_directory(self, base_path):
+        """
+        Validate that all files in the directory and its subdirectories are images.
+        Subdirectories are allowed but must contain only image files.
+        """
+        for root, dirs, files in os.walk(base_path):
+            # Check each file in the directory
+            for file in files:
+                if not self.is_valid_image(file):  # Call the is_valid_image method here
+                    return False, f"Invalid file '{file}' found in {root}. Only image files are allowed."
+            
+            # Check that subdirectories contain only images (no other files or directories)
+            for dir in dirs:
+                dir_path = os.path.join(root, dir)
+                for subroot, subdirs, subfiles in os.walk(dir_path):
+                    if subdirs:  # If any subdirectories exist, return an error
+                        return False, f"Subdirectories found in {dir_path}. Only image files should exist inside subdirectories."
+                    for subfile in subfiles:
+                        if not self.is_valid_image(subfile):
+                            return False, f"Invalid file '{subfile}' found in {dir_path}. Only image files are allowed."
+        
+        return True, "Valid dataset path with only image files."
+    
     def get_valid_path(self, prompt):
+        """
+        Validate the path to ensure it exists, is a directory, and contains only image files inside subdirectories.
+        """
         while True:
             path = input(prompt).strip()
 
@@ -382,9 +416,18 @@ class AdminFunctions:
                 print(f"Invalid path: '{path}' is not a directory.")
                 continue
 
-            return path
+            # Validate that subdirectories only contain image files
+            is_valid, message = self.validate_image_directory(path)
+            if is_valid:
+                return path
+            else:
+                print(f"Invalid path: {message}. Please provide a valid path.")
+
 
     def get_valid_basepath(self):
+        """
+        Get the valid base path for the dataset. Only accepts paths with images.
+        """
         return self.get_valid_path("Enter path to base dataset: ")
     def get_valid_dataset_path(self):
         return self.get_valid_path("\nEnter the path of the trained dataset: ")    
@@ -456,7 +499,14 @@ class AdminFunctions:
                         return value
             except ValueError:
                 print("Invalid input..")
+    def validate_version(self,version):
+        # Ensure version follows the format: X.X or X.X.X (e.g., 1.0 or 1.0.1)
+        version_pattern = r'^\d+(\.\d+){1,2}$'
+        return bool(re.match(version_pattern, version))
 
+    def validate_description(self, description):
+        # Ensure description is not empty and has a reasonable length
+        return len(description) > 0 and len(description) <= 100
     def train_new_model(self):
         from model_training import ModelTrainer
 
@@ -510,9 +560,21 @@ class AdminFunctions:
                 print("Invalid input. Please enter 'y' for yes or 'n' for no.")
 
         # Save model if accuracy is good
-        if accuracy > 0.7:  # You can adjust this threshold
-            version = input("\nEnter version number for new model: ")
-            description = input("Enter model description: ")
+        if accuracy > 0.8:  # You can adjust this threshold
+            # Get inputs with validation
+            while True:
+                version = input("\nEnter version number for new model: ")
+                if self.validate_version(version):
+                    break
+                else:
+                    print("Invalid version number. Please enter a valid version (e.g., 1.0, 1.0.1).")
+
+            while True:
+                description = input("Enter model description: ")
+                if self.validate_description(description):
+                    break
+                else:
+                    print("Invalid description. Please provide a description (non-empty and up to 100 characters).")
             model_path = trainer.save_model(version, description)
             
             # Record in database
@@ -719,82 +781,57 @@ class AdminFunctions:
             
             else:
                 print("Invalid choice! Please try again.")
-
-    # def gift_card_management_menu(self):
-    #     """Menu for managing gift cards."""
-    #     while True:
-    #         print("\n=== Gift Card Management ===")
-    #         print("1. Add a Single Gift Card")
-    #         print("2. Add Multiple Gift Cards")
-    #         print("3. View All Gift Cards")
-    #         print("4. Deactivate a Gift Card")
-    #         print("5. Back to Admin Menu")
-            
-    #         choice = input("Enter your choice (1-5): ")
-            
-    #         if choice == '1':
-    #             try:
-    #                 value = int(input("Enter the value of the gift card: "))
-    #                 days_valid = int(input("Enter the number of days the gift card is valid: "))
-    #                 add_coupon(value, days_valid)
-    #             except ValueError:
-    #                 print("Invalid input! Please enter numerical values.")
-    #         elif choice == '2':
-    #             try:
-    #                 value = int(input("Enter the value of the gift cards: "))
-    #                 days_valid = int(input("Enter the number of days the gift cards are valid: "))
-    #                 count = int(input("Enter the number of gift cards to generate: "))
-    #                 add_multiple_coupons(value, days_valid, count)
-    #             except ValueError:
-    #                 print("Invalid input! Please enter numerical values.")
-    #         elif choice == '3':
-    #             view_coupons()
-    #         elif choice == '4':
-    #             try:
-    #                 coupon_id = int(input("Enter the ID of the gift card to deactivate: "))
-    #                 deactivate_coupon(coupon_id)
-    #             except ValueError:
-    #                 print("Invalid input! Please enter a valid gift card ID.")
-    #         elif choice == '5':
-    #             break
-    #         else:
-    #             print("Invalid choice! Please try again.")
-    
     def view_plots(self):
-        plots_folder = "D:/Conestoga/prog_for_bigdata/PDD/AgroExpert/plots"
-        
+
+        # Get the directory of the current script and make the path relative
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        plots_folder = os.path.join(script_dir, "plots")
+
         if not os.path.exists(plots_folder):
             print(f"Error: Plots folder not found at {plots_folder}")
             return
 
         plot_files = {
-            'accuracy': 'accuracy_plot.png',
-            'loss': 'loss_plot.png',
-            'predictions': 'prediction_samples.png'
+            'Accuracy': 'accuracy_plot.png',
+            'Loss': 'loss_plot.png',
+            'Predictions': 'prediction_samples.png'
         }
 
-        fig, axes = plt.subplots(2, 2, figsize=(20, 20))
-        fig.suptitle("Latest Training Results", fontsize=16)
+        # Collect available files
+        available_files = [(title, os.path.join(plots_folder, filename)) 
+                        for title, filename in plot_files.items() 
+                        if os.path.exists(os.path.join(plots_folder, filename))]
 
-        for i, (plot_type, filename) in enumerate(plot_files.items()):
-            file_path = os.path.join(plots_folder, filename)
-            if os.path.exists(file_path):
-                img = Image.open(file_path)
-                row = i // 2
-                col = i % 2
-                axes[row, col].imshow(img)
-                axes[row, col].axis('off')
-                axes[row, col].set_title(plot_type.capitalize())
-            else:
-                print(f"Warning: {filename} not found")
+        if not available_files:
+            print("No plots available in the folder to display.")
+            return
 
-        # Remove the empty subplot
-        fig.delaxes(axes[1, 1])
+        # Dynamically calculate the number of rows and columns
+        num_plots = len(available_files)
+        rows = (num_plots + 1) // 2
+        fig, axes = plt.subplots(rows, 2, figsize=(12, 6 * rows))
+
+        # Flatten axes array for consistent indexing
+        axes = axes.flatten() if isinstance(axes, np.ndarray) else [axes]
+
+        # Display each available file
+        for i, (title, file_path) in enumerate(available_files):
+            img = Image.open(file_path)
+            axes[i].imshow(img)
+            axes[i].axis('off')
+            axes[i].set_title(title)
+
+        # Hide unused subplots
+        for j in range(len(available_files), len(axes)):
+            fig.delaxes(axes[j])
 
         plt.tight_layout()
         plt.show()
 
-        print("\nPlots displayed. Close the plot window to return to the menu.")         
+        print("\nPlots displayed. Close the plot window to return to the menu.")
+
+        
+       
 if __name__ == "__main__":
     admin = AdminFunctions()
     admin.display_admin_menu()
