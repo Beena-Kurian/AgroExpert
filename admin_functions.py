@@ -559,9 +559,6 @@ class AdminFunctions:
 
         except Exception as e:
             print(f"Error accessing the database: {e}")
-    import os
-
-
 
     def activate_model(self):
         print("\n=== Activate Model ===")
