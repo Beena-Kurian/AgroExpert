@@ -82,8 +82,9 @@ This includes farmer and expert registration and Logins.
 2. Register
 3. Exit
 
-   Once the user login as Farmer/Expert, the dashbboard for them can be accessed to do the intended operations.
-Once farmer is registered, he can login to do different functionalities.
+- Once the user login as Farmer/Expert, the dashbboard for them can be accessed to do the intended operations.
+
+- Once farmer is registered, he can login to do different functionalities.
 
 Farmer can perform operations like:
 1. Upload Image for Disease Identification
